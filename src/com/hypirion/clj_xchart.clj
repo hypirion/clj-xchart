@@ -3,6 +3,7 @@
                              PieChart
                              XYSeries$XYSeriesRenderStyle
                              XChartPanel)
+           (org.knowm.xchart.style Styler$LegendPosition)
            (org.knowm.xchart.style.markers Circle
                                            Diamond
                                            None
@@ -49,6 +50,14 @@
    :scatter XYSeries$XYSeriesRenderStyle/Scatter
    :line XYSeries$XYSeriesRenderStyle/Line})
 
+(def legend-positions
+  {:inside-n Styler$LegendPosition/InsideN
+   :inside-ne Styler$LegendPosition/InsideNE
+   :inside-nw Styler$LegendPosition/InsideNW
+   :inside-se Styler$LegendPosition/InsideSW
+   :inside-sw Styler$LegendPosition/InsideSW
+   :outside-e Styler$LegendPosition/OutsideE})
+
 (defmacro ^:private doto-cond
   "Example:
   (doto-cond expr
@@ -68,9 +77,23 @@
               pairs)
        ~expr-sym)))
 
+(defn- set-legend!
+  [styler
+   {:keys [background-color border-color font padding
+           position series-line-length visible]}]
+  (doto-cond
+   styler
+   background-color (.setLegendBackgroundColor (colors background-color background-color))
+   border-color (.setLegendBorderColor (colors border-color border-color))
+   font (.setLegendFont font)
+   padding (.setLegendPadding (int padding))
+   position (.setLegendPosition (legend-positions position))
+   series-line-length (.setLegendSeriesLineLength (int series-line-length))
+   (not (nil? visible)) (.setLegendVisible visible)))
+
 (defn xy-chart
   "Returns an xy-chart"
-  [{:keys [width height title series]
+  [{:keys [width height title series legend]
     :or {width 640 height 500}}]
   {:pre [series]}
   (let [chart (XYChart. width height)]
@@ -94,17 +117,24 @@
            (not (nil? show-in-legend)) (.setShowInLegend (boolean show-in-legend))
            render-style (.setXYSeriesRenderStyle (xy-render-styles render-style))))))
     (doto-cond
+     (.getStyler chart)
+     legend (set-legend! legend))
+    (doto-cond
      chart
      title (.setTitle title))))
 
 (defn pie-chart
   "Returns a pie chart"
-  [{:keys [width height title series]
+  [{:keys [width height title series circular legend]
     :or {width 640 height 500}}]
   {:pre [series]}
   (let [chart (PieChart. width height)]
     (doseq [[s-name num] series]
       (.addSeries chart s-name num))
+    (doto-cond
+     (.getStyler chart)
+     (not (nil? circular)) (.setCircular circular)
+     legend (set-legend! legend))
     (doto-cond
      chart
      title (.setTitle title))))
