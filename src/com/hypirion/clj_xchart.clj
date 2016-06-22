@@ -1,9 +1,13 @@
 (ns com.hypirion.clj-xchart
   (:import (org.knowm.xchart XYChart
                              PieChart
+                             PieSeries$PieSeriesRenderStyle
                              XYSeries$XYSeriesRenderStyle
                              XChartPanel)
-           (org.knowm.xchart.style Styler$LegendPosition)
+           (org.knowm.xchart.style Styler$LegendPosition
+                                   GGPlot2Theme
+                                   MatlabTheme
+                                   XChartTheme)
            (org.knowm.xchart.style.markers Circle
                                            Diamond
                                            None
@@ -50,6 +54,10 @@
    :scatter XYSeries$XYSeriesRenderStyle/Scatter
    :line XYSeries$XYSeriesRenderStyle/Line})
 
+(def pie-render-styles
+  {:pie PieSeries$PieSeriesRenderStyle/Pie
+   :donut PieSeries$PieSeriesRenderStyle/Donut})
+
 (def legend-positions
   {:inside-n Styler$LegendPosition/InsideN
    :inside-ne Styler$LegendPosition/InsideNE
@@ -57,6 +65,11 @@
    :inside-se Styler$LegendPosition/InsideSW
    :inside-sw Styler$LegendPosition/InsideSW
    :outside-e Styler$LegendPosition/OutsideE})
+
+(def themes
+  {:ggplot2 (GGPlot2Theme.)
+   :matlab (MatlabTheme.)
+   :xchart (XChartTheme.)})
 
 (defmacro ^:private doto-cond
   "Example:
@@ -91,9 +104,35 @@
    series-line-length (.setLegendSeriesLineLength (int series-line-length))
    (not (nil? visible)) (.setLegendVisible visible)))
 
+(defn- set-chart-title-style!
+  [styler
+   {:keys [box-background-color box-border-color box-visible
+           font padding visible]}]
+  (doto-cond
+   styler
+   box-background-color (.setChartTitleBoxBackgroundColor (colors box-background-color box-background-color))
+   box-border-color (.setChartTitleBoxBorderColor (colors box-border-color box-border-color))
+   (not (nil? box-visible)) (.setChartTitleBoxVisible (boolean box-visible))
+   font (.setChartTitleFont font)
+   padding (.setChartTitlePadding (int padding))
+   visible (.setChartTitleVisible visible)))
+
+(defn- set-chart-style!
+  [styler
+   {:keys [background-color font-color padding title]}]
+  (doto-cond
+   styler
+   background-color (.setChartBackgroundColor (colors background-color background-color))
+   font-color (.setChartFontColor (colors font-color font-color))
+   padding (.setChartPadding (int padding))
+   title (set-chart-title-style! title)))
+
+;; TODO: Add in font as a shortcut to set all fonts not yet set.
+
 (defn xy-chart
   "Returns an xy-chart"
-  [{:keys [width height title series legend]
+  [{:keys [width height title series legend theme render-style chart-style
+           annotations-font]
     :or {width 640 height 500}}]
   {:pre [series]}
   (let [chart (XYChart. width height)]
@@ -118,14 +157,19 @@
            render-style (.setXYSeriesRenderStyle (xy-render-styles render-style))))))
     (doto-cond
      (.getStyler chart)
-     legend (set-legend! legend))
+     theme (.setTheme (themes theme theme))
+     render-style (.setDefaultSeriesRenderStyle (xy-render-styles render-style))
+     legend (set-legend! legend)
+     chart-style (set-chart-style! chart-style)
+     annotations-font (.setAnnotationsFont annotations-font))
     (doto-cond
      chart
      title (.setTitle title))))
 
 (defn pie-chart
   "Returns a pie chart"
-  [{:keys [width height title series circular legend]
+  [{:keys [width height title series circular legend theme render-style
+           chart-style annotations-font]
     :or {width 640 height 500}}]
   {:pre [series]}
   (let [chart (PieChart. width height)]
@@ -133,8 +177,12 @@
       (.addSeries chart s-name num))
     (doto-cond
      (.getStyler chart)
+     theme (.setTheme (themes theme theme))
+     render-style (.setDefaultSeriesRenderStyle (pie-render-styles render-style))
      (not (nil? circular)) (.setCircular circular)
-     legend (set-legend! legend))
+     legend (set-legend! legend)
+     chart-style (set-chart-style! chart-style)
+     annotations-font (.setAnnotationsFont annotations-font))
     (doto-cond
      chart
      title (.setTitle title))))
