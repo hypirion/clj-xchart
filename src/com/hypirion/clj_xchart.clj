@@ -6,6 +6,7 @@
                              XChartPanel)
            (org.knowm.xchart.style Styler
                                    Styler$LegendPosition
+                                   PieStyler$AnnotationType
                                    GGPlot2Theme
                                    MatlabTheme
                                    XChartTheme)
@@ -58,6 +59,11 @@
 (def pie-render-styles
   {:pie PieSeries$PieSeriesRenderStyle/Pie
    :donut PieSeries$PieSeriesRenderStyle/Donut})
+
+(def pie-annotation-types
+  {:label PieStyler$AnnotationType/Label
+   :label-and-percentage PieStyler$AnnotationType/LabelAndPercentage
+   :percentage PieStyler$AnnotationType/Percentage})
 
 (def legend-positions
   {:inside-n Styler$LegendPosition/InsideN
@@ -171,6 +177,8 @@
    plot (set-plot-style! plot)
    series (set-series-style! series)))
 
+
+
 ;; TODO: Add in font as a shortcut to set all fonts not yet set.
 
 (defn xy-chart
@@ -216,10 +224,10 @@
   ([series]
    (pie-chart series {}))
   ([series
-    {:keys [width height title circular legend theme render-style
-            chart-style annotations-font annotation-distance
-            start-angle]
-     :or {width 640 height 500}}]
+    {:keys [width height title circular theme render-style annotation-distance
+            start-angle draw-all-annotations donut-thickness annotation-type]
+     :or {width 640 height 500}
+     :as styling}]
    {:pre [series]}
    (let [chart (PieChart. width height)]
      (doseq [[s-name num] series]
@@ -228,12 +236,13 @@
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (pie-render-styles render-style))
-      legend (set-legend! legend)
-      chart-style (set-chart-style! chart-style)
-      annotations-font (.setAnnotationsFont annotations-font)
       (not (nil? circular)) (.setCircular (boolean circular))
+      (not (nil? draw-all-annotations)) (.setDrawAllAnnotations (boolean draw-all-annotations))
       annotation-distance (.setAnnotationDistance (double annotation-distance))
-      start-angle (.setStartAngleInDegrees (double start-angle)))
+      donut-thickness (.setDonutThickness (double donut-thickness))
+      start-angle (.setStartAngleInDegrees (double start-angle))
+      annotation-type (.setAnnotationType (pie-annotation-types annotation-type)))
+     (set-default-style! (.getStyler chart) styling)
      (doto-cond
       chart
       title (.setTitle title)))))
