@@ -1,5 +1,8 @@
 (ns com.hypirion.clj-xchart
-  (:import (org.knowm.xchart BubbleChart
+  (:import (de.erichseifert.vectorgraphics2d SVGGraphics2D
+                                             PDFGraphics2D
+                                             EPSGraphics2D)
+           (org.knowm.xchart BubbleChart
                              XYChart
                              PieChart
                              CategoryChart
@@ -7,7 +10,9 @@
                              CategorySeries$CategorySeriesRenderStyle
                              PieSeries$PieSeriesRenderStyle
                              XYSeries$XYSeriesRenderStyle
-                             XChartPanel)
+                             XChartPanel
+                             BitmapEncoder
+                             BitmapEncoder$BitmapFormat)
            (org.knowm.xchart.style Styler
                                    AxesChartStyler
                                    Styler$LegendPosition
@@ -450,6 +455,33 @@
      (doto-cond
       chart
       title (.setTitle title)))))
+
+(defn as-buffered-image
+  "Converts a chart into a java.awt.image.BufferedImage"
+  [chart]
+  (BitmapEncoder/getBufferedImage chart))
+
+(def ^:private bitmap-formats
+  {:png BitmapEncoder$BitmapFormat/PNG
+   :gif BitmapEncoder$BitmapFormat/GIF
+   :bmp BitmapEncoder$BitmapFormat/BMP
+   :jpg BitmapEncoder$BitmapFormat/JPG})
+
+(def ^:private vector-formats
+  {:pdf #(PDFGraphics2D. 0.0 0.0 %1 %2)
+   :svg #(SVGGraphics2D. 0.0 0.0 %1 %2)
+   :eps #(EPSGraphics2D. 0.0 0.0 %1 %2)})
+
+(defn to-bytes
+  "Converts a chart into a byte array."
+  ([chart type]
+   (if-let [bitmap-format (bitmap-formats type)]
+     (BitmapEncoder/getBitmapBytes chart bitmap-format)
+     (if-let [vector-format (vector-formats type)]
+       (let [g (vector-format (.getWidth chart) (.getHeight chart))]
+         (.paint chart g (.getWidth chart) (.getHeight chart))
+         (.getBytes g))
+       (throw (IllegalArgumentException. (str "Unknown format: " type)))))))
 
 (defn view
   "Utility function to render one or more charts in a swing frame."
