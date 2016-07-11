@@ -1,6 +1,8 @@
 (ns com.hypirion.clj-xchart
   (:import (org.knowm.xchart XYChart
                              PieChart
+                             CategoryChart
+                             CategorySeries$CategorySeriesRenderStyle
                              PieSeries$PieSeriesRenderStyle
                              XYSeries$XYSeriesRenderStyle
                              XChartPanel)
@@ -23,12 +25,6 @@
                         SwingUtilities)
            (java.awt Color
                      GridLayout)))
-
-(defn add-series
-  ([^XYChart chart s-name x-data y-data]
-   (.addSeries chart s-name x-data y-data))
-  ([^XYChart chart s-name x-data y-data error-bars]
-   (.addSeries chart s-name x-data y-data error-bars)))
 
 (def colors
   {:blue Color/BLUE
@@ -66,6 +62,14 @@
   {:label PieStyler$AnnotationType/Label
    :label-and-percentage PieStyler$AnnotationType/LabelAndPercentage
    :percentage PieStyler$AnnotationType/Percentage})
+
+(def category-render-styles
+  {:area CategorySeries$CategorySeriesRenderStyle/Area
+   :bar CategorySeries$CategorySeriesRenderStyle/Bar
+   :line CategorySeries$CategorySeriesRenderStyle/Line
+   :scatter CategorySeries$CategorySeriesRenderStyle/Scatter
+   :stick CategorySeries$CategorySeriesRenderStyle/Stick})
+
 
 (def text-alignments
   {:centre Styler$TextAlignment/Centre
@@ -293,6 +297,32 @@
      x-axis (set-x-axis-style! x-axis)
      y-axis (set-y-axis-style! y-axis))))
 
+(defn- add-raw-series
+  ([chart s-name x-data y-data]
+   (.addSeries chart s-name x-data y-data))
+  ([chart s-name x-data y-data error-bars]
+   (.addSeries chart s-name x-data y-data error-bars)))
+
+(defn add-series
+  [chart s-name data]
+  (if (sequential? data)
+    (apply add-raw-series chart s-name data)
+    (let [{:keys [x y error-bars style]} data
+          {:keys [marker-color marker-type
+                  line-color line-style line-width
+                  fill-color show-in-legend]} style]
+      (doto-cond
+       (if error-bars
+         (add-raw-series chart s-name x y error-bars)
+         (add-raw-series chart s-name x y))
+       marker-color (.setMarkerColor (colors marker-color marker-color))
+       marker-type (.setMarker (markers marker-type marker-type))
+       line-color (.setLineColor (colors line-color line-color))
+       line-style (.setLineStyle line-style)
+       line-width (.setLineWidth (float line-width))
+       fill-color (.setFillColor (colors fill-color fill-color))
+       (not (nil? show-in-legend)) (.setShowInLegend (boolean show-in-legend))))))
+
 ;; TODO: Add in font as a shortcut to set all fonts not yet set.
 
 (defn xy-chart
@@ -306,28 +336,41 @@
    {:pre [series]}
    (let [chart (XYChart. width height)]
      (doseq [[s-name data] series]
-       (if (sequential? data)
-         (apply add-series chart s-name data)
-         (let [{:keys [x y error-bars style]} data
-               {:keys [marker-color marker-type
-                       line-color line-style line-width
-                       fill-color show-in-legend render-style]} style]
-           (doto-cond
-            (if error-bars
-              (add-series chart s-name x y error-bars)
-              (add-series chart s-name x y))
-            marker-color (.setMarkerColor (colors marker-color marker-color))
-            marker-type (.setMarker (markers marker-type marker-type))
-            line-color (.setLineColor (colors line-color line-color))
-            line-style (.setLineStyle line-style)
-            line-width (.setLineWidth (float line-width))
-            fill-color (.setFillColor (colors fill-color fill-color))
-            (not (nil? show-in-legend)) (.setShowInLegend (boolean show-in-legend))
-            render-style (.setXYSeriesRenderStyle (xy-render-styles render-style))))))
+       (let [render-style (-> data :style :render-style)]
+         (doto-cond (add-series chart s-name data)
+          render-style (.setXYSeriesRenderStyle (xy-render-styles render-style)))))
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (xy-render-styles render-style)))
+     (doto (.getStyler chart)
+       (set-default-style! styling)
+       (set-axes-style! styling))
+     (doto-cond
+      chart
+      title (.setTitle title)))))
+
+(defn category-chart
+  "Returns a category chart"
+  ([series]
+   (category-chart series {}))
+  ([series
+    {:keys [width height title theme render-style available-space-fill overlap?]
+     :or {width 640 height 500}
+     :as styling}]
+   {:pre [series]}
+   (let [chart (CategoryChart. width height)]
+     (doseq [[s-name data] series]
+       (let [render-style (-> data :style :render-style)]
+         (doto-cond (add-series chart s-name data)
+          render-style (.setChartCategorySeriesRenderStyle
+                        (category-render-styles render-style)))))
+     (doto-cond
+      (.getStyler chart)
+      theme (.setTheme (themes theme theme))
+      render-style (.setDefaultSeriesRenderStyle (category-render-styles render-style))
+      available-space-fill (.setAvailableSpaceFill (double available-space-fill))
+      (not (nil? overlap?))  (.setOverlapped (boolean overlap?)))
      (doto (.getStyler chart)
        (set-default-style! styling)
        (set-axes-style! styling))
