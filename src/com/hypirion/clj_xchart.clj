@@ -120,7 +120,7 @@
 (defn- set-legend!
   [^Styler styler
    {:keys [background-color border-color font padding
-           position series-line-length visible]}]
+           position series-line-length visible?]}]
   (doto-cond
    styler
    background-color (.setLegendBackgroundColor (colors background-color background-color))
@@ -129,20 +129,22 @@
    padding (.setLegendPadding (int padding))
    position (.setLegendPosition (legend-positions position))
    series-line-length (.setLegendSeriesLineLength (int series-line-length))
-   (not (nil? visible)) (.setLegendVisible visible)))
+   (not (nil? visible?)) (.setLegendVisible (boolean visible?))))
 
 (defn- set-chart-title-style!
   [^Styler styler
-   {:keys [box-background-color box-border-color box-visible
-           font padding visible]}]
-  (doto-cond
-   styler
-   box-background-color (.setChartTitleBoxBackgroundColor (colors box-background-color box-background-color))
-   box-border-color (.setChartTitleBoxBorderColor (colors box-border-color box-border-color))
-   (not (nil? box-visible)) (.setChartTitleBoxVisible (boolean box-visible))
-   font (.setChartTitleFont font)
-   padding (.setChartTitlePadding (int padding))
-   visible (.setChartTitleVisible visible)))
+   {:keys [box font padding visible?]}]
+  (let [{box-background-color :background-color
+         box-border-color :color
+         box-visible? :visible?} box]
+    (doto-cond
+     styler
+     box-background-color (.setChartTitleBoxBackgroundColor (colors box-background-color box-background-color))
+     box-border-color (.setChartTitleBoxBorderColor (colors box-border-color box-border-color))
+     (not (nil? box-visible?)) (.setChartTitleBoxVisible (boolean box-visible?))
+     font (.setChartTitleFont font)
+     padding (.setChartTitlePadding (int padding))
+     (not (nil? visible?)) (.setChartTitleVisible (boolean visible?)))))
 
 (defn- set-chart-style!
   [^Styler styler
@@ -156,12 +158,12 @@
 
 (defn- set-plot-style!
   [^Styler styler
-   {:keys [background-color border-color border-visible content-size]}]
+   {:keys [background-color border-color border-visible? content-size]}]
   (doto-cond
    styler
    background-color (.setPlotBackgroundColor (colors background-color background-color))
    border-color (.setPlotBorderColor (colors border-color border-color))
-   (not (nil? border-visible)) (.setPlotBorderVisible (boolean border-visible))
+   (not (nil? border-visible?)) (.setPlotBorderVisible (boolean border-visible?))
    content-size (.setPlotContentSize (double content-size))))
 
 (defn- set-series-style!
@@ -199,37 +201,37 @@
 
 (defn- set-axis-ticks!
   [^AxesChartStyler styler
-   {:keys [labels marks padding visible line-visible]}]
+   {:keys [labels marks padding visible? line-visible?]}]
   (let [{:keys [color font]} labels]
     (doto-cond
      styler
      color (.setAxisTickLabelsColor (colors color color))
      font (.setAxisTickLabelsFont font)))
-  (let [{:keys [length color stroke visible]} marks]
+  (let [{:keys [length color stroke visible?]} marks]
     (doto-cond
      styler
      length (.setAxisTickMarkLength (int length))
      color (.setAxisTickMarksColor (colors color color))
      stroke (.setAxisTickMarksStroke stroke)
-     (not (nil? visible)) (.setAxisTicksMarksVisible (boolean visible))))
+     (not (nil? visible?)) (.setAxisTicksMarksVisible (boolean visible?))))
   (doto-cond
    styler
    padding (.setAxisTickPadding (int padding))
-   (not (nil? line-visible)) (.setAxisTicksLineVisible (boolean line-visible))
-   (not (nil? visible)) (.setAxisTicksVisible (boolean visible))))
+   (not (nil? line-visible?)) (.setAxisTicksLineVisible (boolean line-visible?))
+   (not (nil? visible?)) (.setAxisTicksVisible (boolean visible?))))
 
 (defn- set-axis-title!
   [^AxesChartStyler styler
-   {:keys [font visible padding]}]
+   {:keys [font visible? padding]}]
   (doto-cond
    styler
    font (.setAxisTitleFont font)
    padding (.setAxisTitlePadding (int padding))
-   (not (nil? visible)) (.setAxisTitleVisible (boolean visible))))
+   (not (nil? visible?)) (.setAxisTitleVisible (boolean visible?))))
 
 (defn- set-axis-plot!
   [^AxesChartStyler styler
-   {:keys [grid-lines margin tick-marks]}]
+   {:keys [grid-lines margin tick-marks?]}]
   (let [{:keys [horizontal? vertical? visible? color stroke]} grid-lines]
     (doto-cond
      styler
@@ -241,7 +243,7 @@
   (doto-cond
    styler
    margin (.setPlotMargin (int margin))
-   (not (nil? tick-marks)) (.setPlotTicksMarksVisible (boolean tick-marks))))
+   (not (nil? tick-marks?)) (.setPlotTicksMarksVisible (boolean tick-marks?))))
 
 (defn- set-x-axis-style!
   [^AxesChartStyler styler
@@ -319,7 +321,7 @@
     (let [{:keys [x y error-bars style]} data
           {:keys [marker-color marker-type
                   line-color line-style line-width
-                  fill-color show-in-legend]} style]
+                  fill-color show-in-legend?]} style]
       (doto-cond
        (if error-bars
          (add-raw-series chart s-name x y error-bars)
@@ -330,7 +332,7 @@
        line-style (.setLineStyle line-style)
        line-width (.setLineWidth (float line-width))
        fill-color (.setFillColor (colors fill-color fill-color))
-       (not (nil? show-in-legend)) (.setShowInLegend (boolean show-in-legend))))))
+       (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
 
 ;; TODO: Add in font as a shortcut to set all fonts not yet set.
 
@@ -394,14 +396,14 @@
     (let [{:keys [x y bubble style]} data
           {:keys [marker-color marker-type
                   line-color line-style line-width
-                  fill-color show-in-legend]} style]
+                  fill-color show-in-legend?]} style]
       (doto-cond
        (add-raw-series chart s-name x y bubble)
        line-color (.setLineColor (colors line-color line-color))
        line-style (.setLineStyle line-style)
        line-width (.setLineWidth (float line-width))
        fill-color (.setFillColor (colors fill-color fill-color))
-       (not (nil? show-in-legend)) (.setShowInLegend (boolean show-in-legend))))))
+       (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
 
 (defn bubble-chart
   "Returns a bubble chart"
@@ -433,8 +435,8 @@
   ([series]
    (pie-chart series {}))
   ([series
-    {:keys [width height title circular theme render-style annotation-distance
-            start-angle draw-all-annotations donut-thickness annotation-type]
+    {:keys [width height title circular? theme render-style annotation-distance
+            start-angle draw-all-annotations? donut-thickness annotation-type]
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
@@ -445,8 +447,8 @@
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (pie-render-styles render-style))
-      (not (nil? circular)) (.setCircular (boolean circular))
-      (not (nil? draw-all-annotations)) (.setDrawAllAnnotations (boolean draw-all-annotations))
+      (not (nil? circular?)) (.setCircular (boolean circular?))
+      (not (nil? draw-all-annotations?)) (.setDrawAllAnnotations (boolean draw-all-annotations?))
       annotation-distance (.setAnnotationDistance (double annotation-distance))
       donut-thickness (.setDonutThickness (double donut-thickness))
       start-angle (.setStartAngleInDegrees (double start-angle))
