@@ -1,7 +1,9 @@
 (ns com.hypirion.clj-xchart
-  (:import (org.knowm.xchart XYChart
+  (:import (org.knowm.xchart BubbleChart
+                             XYChart
                              PieChart
                              CategoryChart
+                             BubbleSeries$BubbleSeriesRenderStyle
                              CategorySeries$CategorySeriesRenderStyle
                              PieSeries$PieSeriesRenderStyle
                              XYSeries$XYSeriesRenderStyle
@@ -70,6 +72,8 @@
    :scatter CategorySeries$CategorySeriesRenderStyle/Scatter
    :stick CategorySeries$CategorySeriesRenderStyle/Stick})
 
+(def bubble-render-styles
+  {:round BubbleSeries$BubbleSeriesRenderStyle/Round})
 
 (def text-alignments
   {:centre Styler$TextAlignment/Centre
@@ -371,6 +375,47 @@
       render-style (.setDefaultSeriesRenderStyle (category-render-styles render-style))
       available-space-fill (.setAvailableSpaceFill (double available-space-fill))
       (not (nil? overlap?))  (.setOverlapped (boolean overlap?)))
+     (doto (.getStyler chart)
+       (set-default-style! styling)
+       (set-axes-style! styling))
+     (doto-cond
+      chart
+      title (.setTitle title)))))
+
+(defn add-bubble-series
+  [chart s-name data]
+  (if (sequential? data)
+    (apply add-raw-series chart s-name data)
+    (let [{:keys [x y bubble style]} data
+          {:keys [marker-color marker-type
+                  line-color line-style line-width
+                  fill-color show-in-legend]} style]
+      (doto-cond
+       (add-raw-series chart s-name x y bubble)
+       line-color (.setLineColor (colors line-color line-color))
+       line-style (.setLineStyle line-style)
+       line-width (.setLineWidth (float line-width))
+       fill-color (.setFillColor (colors fill-color fill-color))
+       (not (nil? show-in-legend)) (.setShowInLegend (boolean show-in-legend))))))
+
+(defn bubble-chart
+  "Returns a bubble chart"
+  ([series]
+   (bubble-chart series {}))
+  ([series
+    {:keys [width height title theme render-style]
+     :or {width 640 height 500}
+     :as styling}]
+   {:pre [series]}
+   (let [chart (BubbleChart. width height)]
+     (doseq [[s-name data] series]
+       (let [render-style (-> data :style :render-style)]
+         (doto-cond (add-series chart s-name data)
+          render-style (.setBubbleSeriesRenderStyle (bubble-render-styles render-style)))))
+     (doto-cond
+      (.getStyler chart)
+      theme (.setTheme (themes theme theme))
+      render-style (.setDefaultSeriesRenderStyle (bubble-render-styles render-style)))
      (doto (.getStyler chart)
        (set-default-style! styling)
        (set-axes-style! styling))
