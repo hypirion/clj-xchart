@@ -1,4 +1,4 @@
-(defproject com.hypirion/clj-xchart "0.1.0-SNAPSHOT"
+(defproject com.hypirion/clj-xchart "0.1.0"
   :description "XChart wrapper for Clojure"
   :url "https://github.com/hyPiRion/clj-xchart"
   :license {:name "Eclipse Public License"
