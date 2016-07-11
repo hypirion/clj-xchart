@@ -5,7 +5,9 @@
                              XYSeries$XYSeriesRenderStyle
                              XChartPanel)
            (org.knowm.xchart.style Styler
+                                   AxesChartStyler
                                    Styler$LegendPosition
+                                   Styler$TextAlignment
                                    PieStyler$AnnotationType
                                    GGPlot2Theme
                                    MatlabTheme
@@ -64,6 +66,11 @@
   {:label PieStyler$AnnotationType/Label
    :label-and-percentage PieStyler$AnnotationType/LabelAndPercentage
    :percentage PieStyler$AnnotationType/Percentage})
+
+(def text-alignments
+  {:centre Styler$TextAlignment/Centre
+   :left Styler$TextAlignment/Left
+   :right Styler$TextAlignment/Right})
 
 (def legend-positions
   {:inside-n Styler$LegendPosition/InsideN
@@ -177,7 +184,114 @@
    plot (set-plot-style! plot)
    series (set-series-style! series)))
 
+(defn- set-axis-ticks!
+  [^AxesChartStyler styler
+   {:keys [labels marks padding visible line-visible]}]
+  (let [{:keys [color font]} labels]
+    (doto-cond
+     styler
+     color (.setAxisTickLabelsColor (colors color color))
+     font (.setAxisTickLabelsFont font)))
+  (let [{:keys [length color stroke visible]} marks]
+    (doto-cond
+     styler
+     length (.setAxisTickMarkLength (int length))
+     color (.setAxisTickMarksColor (colors color color))
+     stroke (.setAxisTickMarksStroke stroke)
+     (not (nil? visible)) (.setAxisTicksMarksVisible (boolean visible))))
+  (doto-cond
+   styler
+   padding (.setAxisTickPadding (int padding))
+   (not (nil? line-visible)) (.setAxisTicksLineVisible (boolean line-visible))
+   (not (nil? visible)) (.setAxisTicksVisible (boolean visible))))
 
+(defn- set-axis-title!
+  [^AxesChartStyler styler
+   {:keys [font visible padding]}]
+  (doto-cond
+   styler
+   font (.setAxisTitleFont font)
+   padding (.setAxisTitlePadding (int padding))
+   (not (nil? visible)) (.setAxisTitleVisible (boolean visible))))
+
+(defn- set-axis-plot!
+  [^AxesChartStyler styler
+   {:keys [grid-lines margin tick-marks]}]
+  (let [{:keys [horizontal? vertical? visible? color stroke]} grid-lines]
+    (doto-cond
+     styler
+     (not (nil? visible?)) (.setPlotGridLinesVisible (boolean visible?))
+     color (.setPlotGridLinesColor (colors color color))
+     stroke (.setPlotGridLinesStroke stroke)
+     (not (nil? horizontal?)) (.setPlotGridHorizontalLinesVisible (boolean horizontal?))
+     (not (nil? vertical?)) (.setPlotGridVerticalLinesVisible (boolean vertical?))))
+  (doto-cond
+   styler
+   margin (.setPlotMargin (int margin))
+   (not (nil? tick-marks)) (.setPlotTicksMarksVisible (boolean tick-marks))))
+
+(defn- set-x-axis-style!
+  [^AxesChartStyler styler
+   {:keys [label logarithmic? max min decimal-pattern
+           tick-mark-spacing-hint ticks-visible? title-visible?]}]
+  (let [{:keys [alignment rotation]} label]
+    (doto-cond
+     styler
+     alignment (.setXAxisLabelAlignment (text-alignments alignment alignment))
+     rotation (.setXAxisLabelRotation (int rotation))))
+  (doto-cond
+   styler
+   decimal-pattern (.setXAxisDecimalPattern decimal-pattern)
+   (not (nil? logarithmic?)) (.setXAxisLogarithmic (boolean logarithmic?))
+   max (.setXAxisMax (double max))
+   min (.setXAxisMin (double min))
+   tick-mark-spacing-hint (.setXAxisTickMarkSpacingHint (int tick-mark-spacing-hint))
+   (not (nil? ticks-visible?)) (.setXAxisTicksVisible (boolean ticks-visible?))
+   (not (nil? title-visible?)) (.setXAxisTitleVisible (boolean title-visible?))))
+
+(defn- set-y-axis-style!
+  [^AxesChartStyler styler
+   {:keys [label logarithmic? max min decimal-pattern
+           tick-mark-spacing-hint ticks-visible? title-visible?]}]
+  (let [{:keys [alignment rotation]} label]
+    (doto-cond
+     styler
+     alignment (.setYAxisLabelAlignment (text-alignments alignment alignment))))
+  (doto-cond
+   styler
+   decimal-pattern (.setYAxisDecimalPattern decimal-pattern)
+   (not (nil? logarithmic?)) (.setYAxisLogarithmic (boolean logarithmic?))
+   max (.setYAxisMax (double max))
+   min (.setYAxisMin (double min))
+   tick-mark-spacing-hint (.setYAxisTickMarkSpacingHint (int tick-mark-spacing-hint))
+   (not (nil? ticks-visible?)) (.setYAxisTicksVisible (boolean ticks-visible?))
+   (not (nil? title-visible?)) (.setYAxisTitleVisible (boolean title-visible?))))
+
+(defn- set-axes-style!
+  [^AxesChartStyler styler
+   {:keys [axis error-bars-color plot x-axis y-axis
+           date-pattern decimal-pattern locale marker timezone]}]
+  (let [ebc error-bars-color ;; error-bars-color is too long to be readable in these expressions
+        {axis-ticks :ticks axis-title :title} axis
+        {marker-size :size} marker]
+    (doto-cond
+     styler
+     axis-ticks (set-axis-ticks! axis-ticks)
+     axis-title (set-axis-title! axis-title)
+     date-pattern (.setDatePattern date-pattern)
+     decimal-pattern (.setDecimalPattern decimal-pattern)
+     ;; The logic here is as follows: You can specify a colour for the error
+     ;; bars. If the colour is :match-series, then the colour matches the series
+     ;; colour, but if you specify something else, you cannot match the series!
+     (and ebc (not= ebc :match-series)) (.setErrorBarsColor (colors ebc ebc))
+     (and ebc (not= ebc :match-series)) (.setErrorBarsColorSeriesColor false)
+     (= ebc :match-series) (.setErrorBarsColorSeriesColor true)
+     locale (.setLocale locale)
+     marker-size (.setMarkerSize marker-size)
+     plot (set-axis-plot! plot)
+     timezone (.setTimezone timezone)
+     x-axis (set-x-axis-style! x-axis)
+     y-axis (set-y-axis-style! y-axis))))
 
 ;; TODO: Add in font as a shortcut to set all fonts not yet set.
 
@@ -214,7 +328,9 @@
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (xy-render-styles render-style)))
-     (set-default-style! (.getStyler chart) styling)
+     (doto (.getStyler chart)
+       (set-default-style! styling)
+       (set-axes-style! styling))
      (doto-cond
       chart
       title (.setTitle title)))))
