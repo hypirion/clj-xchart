@@ -34,6 +34,10 @@
                      GridLayout)))
 
 (def colors
+  "All the default java.awt colors as keywords. You can use this map
+  to iterate over the keys, in case you'd like to compare different
+  colors. Or you could use java.awt.Color directly to use the exact
+  color you want."
   {:blue Color/BLUE
    :black Color/BLACK
    :cyan Color/CYAN
@@ -49,6 +53,9 @@
    :yellow Color/YELLOW})
 
 (def markers
+  "All the default XChart markers as keywords. To create your own marker, you
+  must _subclass_ the org.knowm.xchart.style.markers.Marker class, so it's often
+  better to use the default ones."
   {:circle (Circle.)
    :diamond (Diamond.)
    :none (None.)
@@ -57,20 +64,25 @@
    :triangle-down (TriangleDown.)})
 
 (def xy-render-styles
+  "The different xy-render styles: :area, :scatter and :line."
   {:area XYSeries$XYSeriesRenderStyle/Area
    :scatter XYSeries$XYSeriesRenderStyle/Scatter
    :line XYSeries$XYSeriesRenderStyle/Line})
 
 (def pie-render-styles
+  "The different pie render styles. It is :pie by default."
   {:pie PieSeries$PieSeriesRenderStyle/Pie
    :donut PieSeries$PieSeriesRenderStyle/Donut})
 
 (def pie-annotation-types
+  "The different annotation types you can use to annotate pie charts.
+  By default, this is :percentage."
   {:label PieStyler$AnnotationType/Label
    :label-and-percentage PieStyler$AnnotationType/LabelAndPercentage
    :percentage PieStyler$AnnotationType/Percentage})
 
 (def category-render-styles
+  "The different styles you can use for category series."
   {:area CategorySeries$CategorySeriesRenderStyle/Area
    :bar CategorySeries$CategorySeriesRenderStyle/Bar
    :line CategorySeries$CategorySeriesRenderStyle/Line
@@ -78,15 +90,20 @@
    :stick CategorySeries$CategorySeriesRenderStyle/Stick})
 
 (def bubble-render-styles
+  "Different render styles for bubble series. For now this is useless, as you
+  can only use :round. Apparently :box is around the corner though."
   {:round BubbleSeries$BubbleSeriesRenderStyle/Round})
 
 (def text-alignments
+  "The different kinds of text alignments you can use."
   {:centre Styler$TextAlignment/Centre
    :left Styler$TextAlignment/Left
    :right Styler$TextAlignment/Right})
 
 (def legend-positions
-  {:inside-n Styler$LegendPosition/InsideN
+  "The different legend positions. Note that xchart implements only a
+  subset of inside/outside for the different positions."
+  {:inside-n  Styler$LegendPosition/InsideN
    :inside-ne Styler$LegendPosition/InsideNE
    :inside-nw Styler$LegendPosition/InsideNW
    :inside-se Styler$LegendPosition/InsideSW
@@ -94,6 +111,7 @@
    :outside-e Styler$LegendPosition/OutsideE})
 
 (def themes
+  "The different default themes you can use with xchart."
   {:ggplot2 (GGPlot2Theme.)
    :matlab (MatlabTheme.)
    :xchart (XChartTheme.)})
