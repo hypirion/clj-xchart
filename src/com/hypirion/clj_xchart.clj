@@ -30,11 +30,12 @@
                                            Square
                                            TriangleDown
                                            TriangleUp)
+           (java.io FileOutputStream)
+           (java.awt Color
+                     GridLayout)
            (javax.swing JPanel
                         JFrame
-                        SwingUtilities)
-           (java.awt Color
-                     GridLayout)))
+                        SwingUtilities)))
 
 (def colors
   "All the default java.awt colors as keywords. You can use this map
@@ -604,3 +605,22 @@
           (.pack frame)
           (.setVisible frame true)))
     frame))
+
+(def ^:private extra-extensions
+  {"jpeg" :jpg})
+
+(defn- guess-extension
+  [fname]
+  (if-let [last-dot (s/last-index-of fname ".")]
+    (let [extension (s/lower-case (subs fname (inc last-dot)))]
+      (or (extra-extensions extension)
+          (keyword extension)))))
+
+(defn spit
+  "Spits the chart to the given filename. If no type is provided, the type is
+  guessed by the"
+  ([chart fname]
+   (spit chart fname (guess-extension fname)))
+  ([chart fname type]
+   (with-open [fos (FileOutputStream. fname)]
+     (.write fos (to-bytes chart type)))))
