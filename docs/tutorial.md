@@ -112,6 +112,11 @@ This will render as follows:
 
 ![A basic XY-chart with styled error bars](imgs/styled-error-bars.png)
 
+Note that you _can_ attach styling for the entire chart via
+[render-options](render-options.md), and in some cases also attach a style based
+on input ordering. What you should use depends on whether it makes sense to
+bundle styling with data or not in your use case.
+
 ## Category Charts
 
 You can also render category charts with clj-xchart: This is done via
@@ -210,15 +215,15 @@ In this example, the series order is ordered alphanumerically, and the
 additional x-axis values Savings and Unexpected will be sorted alphanumerically
 as well.
 
-### Overlapping/Stacked category charts
+### Overlapping category charts
 
-Another way of representing the same data is by stacking the data on top of
+Another way of representing the same data is by overlapping the data on top of
 eachother. This is possible via the `:overlap?` styling option. In that case, we
 should transpose the data for it to make some sense:
 
 ```clj
-(def food {"Expected" 5.2, "Actual" 5.5})
 (def rent {"Expected" 13.4, "Actual" 13.4})
+(def food {"Expected" 5.2, "Actual" 5.5})
 (def savings {"Expected" 3.5, "Actual" 2.5})
 (def unexpected {"Actual" 1.0})
 
@@ -227,7 +232,21 @@ user=> (def chart (c/category-chart {"Food" food
                                      "Savings" savings
                                      "Unexpected" unexpected}
                                      {:overlap? true
-                                      :x-axis {:order ["Expected" "Actual"]}}))
+                                      :x-axis {:order ["Expected" "Actual"]}
+                                      :series-order ["Rent" "Food" "Savings" "Unexpected"]}))
+#'user/chart
+
+user=> (c/view chart)
 ```
 
-![Image showing a stacked category chart](imgs/category-chart-overlap.png)
+![Image showing an overlapped category chart](imgs/category-chart-overlap.png)
+
+Overlap is _not_ the same as a stacked chart, and it should be noted that
+overlaps could paint over another series completely. If we were to reorder the
+series order to ``["Food" "Rent" "Savings" "Unexpected"]`, then you get some
+interesting results:
+
+![Image showing a badly overlapped category chart](imgs/category-chart-overlap-bad.png)
+
+You rarely want to use overlap unless you know the data well and order it
+correctly.
