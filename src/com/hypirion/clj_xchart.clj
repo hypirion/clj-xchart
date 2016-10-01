@@ -1,4 +1,7 @@
 (ns com.hypirion.clj-xchart
+  (:refer-clojure :exclude [spit])
+  (:require [clojure.set :as set]
+            [clojure.string :as s])
   (:import (de.erichseifert.vectorgraphics2d SVGGraphics2D
                                              PDFGraphics2D
                                              EPSGraphics2D)
@@ -379,10 +382,11 @@
       chart
       title (.setTitle title)))))
 
-(defn category-chart
-  "Returns a category chart"
+(defn category-chart*
+  "Returns a raw category chart. Prefer `category-chart` unless you run into
+  performance issues, see the tutorial for more information."
   ([series]
-   (category-chart series {}))
+   (category-chart* series {}))
   ([series
     {:keys [width height title theme render-style available-space-fill overlap?]
      :or {width 640 height 500}
@@ -406,6 +410,78 @@
      (doto-cond
       chart
       title (.setTitle title)))))
+;; Utility functions
+
+(defn- normalize-category-series
+  "Returns the content of a category series on the shape {:x ... :y ...} with
+  styling data retained."
+  [series-data]
+  (cond (and (map? series-data)
+             (contains? series-data :x)
+             (contains? series-data :y)) series-data
+        (and (map? series-data)
+             (contains? series-data :content)) (-> (:content series-data)
+                                                   (normalize-category-series)
+                                                   ;; retain styling data:
+                                                   (merge (dissoc series-data :content)))
+        ;; Assuming keys are strings/vals
+        (and (map? series-data)
+             (every? (comp not keyword?)
+                     (keys series-data))) {:x (keys series-data)
+                                           :y (vals series-data)}
+        (sequential? series-data) {:x (first series-data)
+                                   :y (second series-data)}))
+
+(defn- category-series-xs
+  "Given a map of series, return all the unique x-elements as a set."
+  [series]
+  (->> (vals series)
+       (mapcat :x)
+       set))
+
+(defn- reorder-series
+  "Reorders a normalized series content to the assigned ordering"
+  [{:keys [x y] :as series} x-order]
+  ;; Here we may unfortunately recompute an input value. If perfomance is an
+  ;; issue, we may attach the mapping onto the series.
+  (let [mapping (zipmap x y)]
+    (assoc series
+           :x x-order
+           :y (mapv (fn [x] (get mapping x 0.0)) x-order))))
+
+;; I do have some issues differing between a single series and multiple series.
+;; I'll call a map of series a series-map for now.
+(defn- normalize-category-series-map
+  "Given a series map, normalize the series to contain all x values with the
+  order specified in x-order. If the x value does not exist in a series, the
+  value 0.0 is inserted. If there are other x values not in x-order, they are
+  attached at the end in sorted order."
+  [series-map x-order]
+  (let [series-map (into {}
+                         (for [[k v] series-map]
+                           [k (normalize-category-series v)]))
+        x-order (vec x-order)
+        extra-xs (sort (set/difference (category-series-xs series-map)
+                                       (set x-order)))
+        x-order (into x-order extra-xs)]
+    (into {}
+          (for [[k v] series-map]
+            [k (reorder-series v x-order)]))))
+
+(defn category-chart
+  "Returns a category chart. A series content can be on the form
+  {String/Date/Number Number}, and if you desire to style it, you can wrap it in
+  a map `:content`. :x-order and :series-order"
+  ([series]
+   (category-chart series {}))
+  ([series {:keys [x-axis series-order] :as styling}]
+   (let [x-order (:order x-axis)
+         normalized-map (normalize-category-series-map series x-order)
+         extra-categories (->> (apply dissoc normalized-map series-order)
+                               (sort-by key))
+         normalized-seq (concat (keep #(find normalized-map %) series-order)
+                                extra-categories)]
+     (category-chart* normalized-seq styling))))
 
 (defn add-bubble-series
   [chart s-name data]
