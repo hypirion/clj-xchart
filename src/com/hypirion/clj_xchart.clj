@@ -380,7 +380,9 @@
        (set-axes-style! styling))
      (doto-cond
       chart
-      title (.setTitle title)))))
+      title (.setTitle title)
+      (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
+      (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
 (defn category-chart*
   "Returns a raw category chart. Prefer `category-chart` unless you run into
@@ -409,7 +411,10 @@
        (set-axes-style! styling))
      (doto-cond
       chart
-      title (.setTitle title)))))
+      title (.setTitle title)
+      (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
+      (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
+
 ;; Utility functions
 
 (defn- normalize-category-series
@@ -522,7 +527,9 @@
        (set-axes-style! styling))
      (doto-cond
       chart
-      title (.setTitle title)))))
+      title (.setTitle title)
+      (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
+      (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
 (defn pie-chart
   "Returns a pie chart"
@@ -550,7 +557,9 @@
      (set-default-style! (.getStyler chart) styling)
      (doto-cond
       chart
-      title (.setTitle title)))))
+      title (.setTitle title)
+      (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
+      (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
 (defn as-buffered-image
   "Converts a chart into a java.awt.image.BufferedImage"
