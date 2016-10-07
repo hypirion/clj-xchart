@@ -250,3 +250,113 @@ interesting results:
 
 You rarely want to use overlap unless you know the data well and order it
 correctly.
+
+### Stacked category charts
+
+Work on implementing a `:stacked?` option is future work and currently not
+supported.
+
+## Bubble Chart
+
+Bubble charts can be created via the `bubble-chart*`. It works more or less like
+an XY chart, except that error bars are replaced with bubble data which is
+required.
+
+As one would guess, `bubble-chart*` is designed for low-level usage. Currently
+there is no high-level function named `bubble-chart` because it's not entirely
+obvious (yet!) for me how to send input and get a reasonable input out.
+
+The bubble data given to `bubble-chart*` will be the _diameter in pixels_ to the
+bubbles which are rendered. Note that they don't scale, i.e. increasing the
+width and/or size of the chart will not increase the bubble sizes.
+
+This has some unfortunate effects. First and foremost people often treat bubbles
+by their total _area_ and not their _diameter_. Yet when you pass in bubble data
+to `bubble-chart*`, the value 20.0 has four times as much area as the
+value 10.0. It therefore usually makes sense to map the bubble data over
+`Math/sqrt` before using it in the chart.
+
+Another issue is that the bubbles could end up being very large or very small in
+the chart, all depending on the numbers given as input. One way to scale bubbles
+in a relatively straightforward manner would be to set the highest bubble value
+_b-max_ to some desired bubble diameter _max-diameter_ (again in pixels). To do
+this, you have to find the _b-max_ (of _all_ the series) and scale all bubble
+values by the expression
+
+```clj
+(fn [b] (* max-diameter (Math/sqrt (/ b b-max))))
+```
+
+However, this shouldn't be used as canon, because the bubbles are sized relative
+to the content of this particular chart. If the data you represent change over
+time, then this would make people confused. If you represent e.g. sales through
+a bubble chart, imagine the salespeople's horror when they notice that sales
+haven't increased for months! In that case, it's better to scale it with a
+constant you find when you start making these bubble charts.
+
+All in all, think really hard before you use bubble charts with the current
+implementation.
+
+With that in mind, let's have a look at an actual example.
+
+Imagine we have two heuristics for an NP-complete task scheduling algorithm. One
+is based on taboo search and another on simulated annealing. We want to know
+which one is the best: In our case, we have, for different input sizes, the
+total cost (money) spent performing the tasks and the total time taken to finish
+all the tasks. We, of course, want to represent them both.
+
+```clj
+(def taboo
+  {50 {:cost 0.5
+       :duration 567}
+   2500 {:cost 23.4
+         :duration 24291}
+   125000 {:cost 1281
+           :duration 1299568}
+   6250000 {:cost 70102
+            :duration 54653212}})
+
+(def simulated-annealing
+  {50 {:cost 0.51
+       :duration 560}
+   2500 {:cost 26.4
+         :duration 23102}
+   125000 {:cost 1821
+           :duration 1182343}
+   6250000 {:cost 83613
+            :duration 47293720}})
+```
+
+Here, the input sizes are the keys, and the map should contain obvious values.
+It doesn't make sense to use total cost or duration though, so we divide it by
+the total number of tasks. We use the y axis for total time needed to finish the
+tasks, while the cost is represented by bubble size (smaller is better). The
+constant 500 was randomly found through trial and error.
+
+```clj
+(defn bubblify
+  [m]
+  {:x (keys m)
+   :y (map (fn [input prop] (/ (:duration prop) input))
+           (keys m) (vals m))
+   :bubble (map (fn [input prop] (* 500 (Math/sqrt (/ (:cost prop) input))))
+                (keys m) (vals m))})
+```
+
+The only remaining thing to make the chart readable is to scale the x-axis
+logarithmically. This is done by setting the `[:x-axis :logarithmic]` property
+in the style map to true:
+
+```
+(c/view
+ (c/bubble-chart*
+  {"Taboo" (bubblify taboo)
+   "Simulated Annealing" (bubblify simulated-annealing)}
+  {:title "Heuristic comparison"
+   :legend {:position :inside-ne}
+   :y-axis {:title "Task completion time (s/task)"}
+   :x-axis {:title "Number of tasks"
+            :logarithmic? true}}))
+```
+
+![Image of a sample bubble chart](imgs/np-bubble.png)

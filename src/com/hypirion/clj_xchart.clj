@@ -505,10 +505,10 @@
        fill-color (.setFillColor (colors fill-color fill-color))
        (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
 
-(defn bubble-chart
-  "Returns a bubble chart"
+(defn bubble-chart*
+  "Returns a raw bubble chart"
   ([series]
-   (bubble-chart series {}))
+   (bubble-chart* series {}))
   ([series
     {:keys [width height title theme render-style]
      :or {width 640 height 500}
@@ -517,7 +517,7 @@
    (let [chart (BubbleChart. width height)]
      (doseq [[s-name data] series]
        (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-series chart s-name data)
+         (doto-cond (add-bubble-series chart s-name data)
           render-style (.setBubbleSeriesRenderStyle (bubble-render-styles render-style)))))
      (doto-cond
       (.getStyler chart)
