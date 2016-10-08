@@ -25,8 +25,34 @@ or [inlein](http://inlein.org/):
 '{:dependencies [[org.clojure/clojure "1.8.0"]
                  [com.hypirion/clj-xchart "0.1.0"]]}
 
+(require '[com.hypirion.clj-xchart :as c])
+
 ;; your code here
 ```
+
+I'll assume that the namespace `com.hypirion.clj-xchart` is required and aliased
+to `c`, either like in the inlein example above, or in a `ns` form.
+
+## Visualising
+
+Before we go on, let's have a look at the different possible ways to save and
+show a chart on the screen.
+
+`view` takes one or more charts and renders in a swing frame. This is nice
+when you're prototyping and need to verify that the chart looks right. Or you
+can use it to compare the styling of two charts to figure out which one looks
+the best.
+
+`to-bytes` takes a single chart and a format type, and returns a byte array of
+the output. The format type can be either `:png`, `:gif`, `:bmp`,
+`:jpg`/`:jpeg`, `:pdf`, `:svg` and `:eps`.
+
+`spit` is utility function and a chart variant of Clojure's own `spit`. It takes
+a chart, a filename and an optional format type, and writes it to disk. If the
+format type is not specified, then it is guessed by the filename extension.
+
+For low-level use, you can use `as-buffered-image` to get a
+`java.awt.image.BufferedImage` from the chart.
 
 ## XY-Charts
 
@@ -34,8 +60,6 @@ The most straightforward chart type is the XY-chart: It plots line plots. To
 create a XY-chart, we use the `xy-chart` function:
 
 ```clj
-(require '[com.hypirion.clj-xchart :as c])
-
 user=> (def chart
          (c/xy-chart {"Expected rate" [(range 10) (range 10)]
                       "Actual rate" [(range 10) (map #(+ % (rand-int 5) -2) (range 10))]}))
@@ -268,7 +292,7 @@ obvious (yet!) for me how to send input and get a reasonable input out.
 
 The bubble data given to `bubble-chart*` will be the _diameter in pixels_ to the
 bubbles which are rendered. Note that they don't scale, i.e. increasing the
-width and/or size of the chart will not increase the bubble sizes.
+width and/or height of the chart will not increase the bubble sizes.
 
 This has some unfortunate effects. First and foremost people often treat bubbles
 by their total _area_ and not their _diameter_. Yet when you pass in bubble data
@@ -344,10 +368,10 @@ constant 500 was randomly found through trial and error.
 ```
 
 The only remaining thing to make the chart readable is to scale the x-axis
-logarithmically. This is done by setting the `[:x-axis :logarithmic]` property
+logarithmically. This is done by setting the `[:x-axis :logarithmic?]` property
 in the style map to true:
 
-```
+```clj
 (c/view
  (c/bubble-chart*
   {"Taboo" (bubblify taboo)
@@ -360,3 +384,31 @@ in the style map to true:
 ```
 
 ![Image of a sample bubble chart](imgs/np-bubble.png)
+
+Here we also use a bit of styling to put the legend inside the plot instead of
+outside. It makes the chart a bit easier to read.
+
+## Pie Charts
+
+Compared to most of the other charts, the pie chart is very simple and hard to
+mess up. Just pass in map of strings to numbers and that's it:
+
+```clj
+(c/view
+ (c/pie-chart {"Spaces" 400
+               "Tabs" 310
+               "A mix of both" 2}))
+```
+
+![Image of a sample pie chart](imgs/basic-pie-chart.png)
+
+Note that when the size of an entry is very small, its percentage is not shown.
+You can turn this behaviour off if you want to, see
+[render-options](render-options.md).
+
+## Gotchas
+
+Note that PDF support seems incredibly slow and might even break on Java 1.6 (I
+managed to get heap dumps when using it). I would recommend to check out the
+performance before using the PDF option in production. The other vector formats
+seems to work fine though.
