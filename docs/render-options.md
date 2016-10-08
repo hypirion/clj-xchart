@@ -258,6 +258,8 @@ significantly. That's inconvenient, and to avoid that we can set
           :series [{:color :red} {:color :orange}]}))
 ```
 
+![Legend position example with Apples and Oranges](imgs/legend-positions.png)
+
 Here we also use `:series` to set the color of the series. For bubble charts,
 there are no "verbose" form yet, and thus the ordering matters for `:series`.
 (It's on the list of things to fix)
