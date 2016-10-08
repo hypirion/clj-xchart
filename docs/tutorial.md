@@ -23,15 +23,15 @@ or [inlein](http://inlein.org/):
 #!/usr/bin/env inlein
 
 '{:dependencies [[org.clojure/clojure "1.8.0"]
-                 [com.hypirion/clj-xchart "0.1.0"]]}
+                 [com.hypirion/clj-xchart "0.2.0"]]}
 
 (require '[com.hypirion.clj-xchart :as c])
 
 ;; your code here
 ```
 
-I'll assume that the namespace `com.hypirion.clj-xchart` is required and aliased
-to `c`, either like in the inlein example above, or in a `ns` form.
+The code below assumes that the namespace `com.hypirion.clj-xchart` is required
+and aliased to `c`, either like in the inlein example above, or in a `ns` form.
 
 ## Visualising
 

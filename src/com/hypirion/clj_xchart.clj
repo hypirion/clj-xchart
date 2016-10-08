@@ -30,6 +30,7 @@
                                            Square
                                            TriangleDown
                                            TriangleUp)
+           (org.knowm.xchart.style.lines SeriesLines)
            (java.io FileOutputStream)
            (java.awt Color
                      GridLayout)
@@ -55,6 +56,15 @@
    :red Color/RED
    :white Color/WHITE
    :yellow Color/YELLOW})
+
+(def strokes
+  "The default stroke types provided by XChart. You can also use a self-made
+  stroke if you're not happy with any of the predefined ones."
+  {:none SeriesLines/NONE
+   :solid SeriesLines/SOLID
+   :dash-dot SeriesLines/DASH_DOT
+   :dash-dash SeriesLines/DASH_DASH
+   :dot-dot SeriesLines/DOT_DOT})
 
 (def markers
   "All the default XChart markers as keywords. To create your own marker, you
@@ -197,11 +207,12 @@
         series-markers (.getSeriesMarkers styler)
         series (vec series)]
     (dotimes [i (count series)]
+      ;; TODO: nth instead mayhaps
       (let [{:keys [color stroke marker]} (series i)]
         (when color
           (aset series-colors i (colors color color)))
         (when stroke
-          (aset series-lines i stroke))
+          (aset series-lines i (strokes stroke stroke)))
         (when marker
           (aset series-markers i (markers marker marker)))))
     (doto styler
@@ -234,7 +245,7 @@
      styler
      length (.setAxisTickMarkLength (int length))
      color (.setAxisTickMarksColor (colors color color))
-     stroke (.setAxisTickMarksStroke stroke)
+     stroke (.setAxisTickMarksStroke (strokes stroke stroke))
      (not (nil? visible?)) (.setAxisTicksMarksVisible (boolean visible?))))
   (doto-cond
    styler
@@ -259,7 +270,7 @@
      styler
      (not (nil? visible?)) (.setPlotGridLinesVisible (boolean visible?))
      color (.setPlotGridLinesColor (colors color color))
-     stroke (.setPlotGridLinesStroke stroke)
+     stroke (.setPlotGridLinesStroke (strokes stroke stroke))
      (not (nil? horizontal?)) (.setPlotGridHorizontalLinesVisible (boolean horizontal?))
      (not (nil? vertical?)) (.setPlotGridVerticalLinesVisible (boolean vertical?))))
   (doto-cond
@@ -351,7 +362,7 @@
        marker-color (.setMarkerColor (colors marker-color marker-color))
        marker-type (.setMarker (markers marker-type marker-type))
        line-color (.setLineColor (colors line-color line-color))
-       line-style (.setLineStyle line-style)
+       line-style (.setLineStyle (strokes line-style line-style))
        line-width (.setLineWidth (float line-width))
        fill-color (.setFillColor (colors fill-color fill-color))
        (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
@@ -500,7 +511,7 @@
       (doto-cond
        (add-raw-series chart s-name x y bubble)
        line-color (.setLineColor (colors line-color line-color))
-       line-style (.setLineStyle line-style)
+       line-style (.setLineStyle (strokes line-style line-style))
        line-width (.setLineWidth (float line-width))
        fill-color (.setFillColor (colors fill-color fill-color))
        (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
