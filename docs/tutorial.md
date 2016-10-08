@@ -416,3 +416,33 @@ seems to work fine though.
 If you use `view` on a chart, it seems like the chart's dimensions could be
 changed. So if you view it, scale the window a bit, then write it to a file,
 then the size could differ from what you originally intended it to be.
+
+Line charts are effetively just a polyline, which means the order of the x and y
+values matters. They are not sorted beforehand, so you can make silly charts
+like this one:
+
+```clj
+(defn log-spiral-x [a b t]
+  (* a (Math/exp (* b t)) (Math/cos t)))
+(defn log-spiral-y [a b t]
+  (* a (Math/exp (* b t)) (Math/sin t)))
+
+(c/view (c/xy-chart
+         {"curve" {:x (cons 0 (map #(+ 2 (log-spiral-x -0.2 0.2 %))
+                                   (range 10.5 0 -0.1)))
+                   :y (cons 0 (map #(+ 4 (log-spiral-y 0.2 0.2 %))
+                                   (range 10.5 0 -0.1)))
+                   :style {:marker-type :none}}}
+         {:title "Learning Curve for Emacs"
+          :width 640
+          :height 500
+          :legend {:visible? false}
+          :axis {:ticks {:visible? false}}}))
+```
+
+![Emacs Learning Curve](imgs/emacs-learning-curve.png)
+
+Sometimes this is desirable, e.g. for making charts using parametric forms. But
+usually this is a recipie for disaster: Just pick an order and deal with it.
+
+This is not an issue if you use scatter- or bubble charts.
