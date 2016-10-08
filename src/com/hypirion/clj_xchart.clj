@@ -571,7 +571,8 @@
   {:png BitmapEncoder$BitmapFormat/PNG
    :gif BitmapEncoder$BitmapFormat/GIF
    :bmp BitmapEncoder$BitmapFormat/BMP
-   :jpg BitmapEncoder$BitmapFormat/JPG})
+   :jpg BitmapEncoder$BitmapFormat/JPG
+   :jpeg BitmapEncoder$BitmapFormat/JPG})
 
 (def ^:private vector-formats
   {:pdf #(PDFGraphics2D. 0.0 0.0 %1 %2)
@@ -606,15 +607,12 @@
           (.setVisible frame true)))
     frame))
 
-(def ^:private extra-extensions
-  {"jpeg" :jpg})
 
 (defn- guess-extension
   [fname]
   (if-let [last-dot (s/last-index-of fname ".")]
     (let [extension (s/lower-case (subs fname (inc last-dot)))]
-      (or (extra-extensions extension)
-          (keyword extension)))))
+      (keyword extension))))
 
 (defn spit
   "Spits the chart to the given filename. If no type is provided, the type is
