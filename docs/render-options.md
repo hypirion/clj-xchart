@@ -385,3 +385,124 @@ You can also set the stroke type on each chart type:
 
 Usually the default styles work fine, but you can also make your own strokes
 like in the example above.
+
+## XY Chart Examples
+
+Now we can finally go over to specific chart examples.
+
+The generic examples above should cover almost everything specific with XY
+charts. There is an additional option, which is `:render-style`, which changes
+how the xy-lines are rendered. The style can be only one of the following ones:
+
+```clj
+#{:line :area :scatter}
+```
+
+### Area Chart
+
+By default `:line` is used. You can specify `:render-style` for the entire graph
+or on a per-series basis. The style defined on a specific series overrides the
+default style. Here's an XY-chart which uses `:area` by default, but the "Total
+memory" series overrides this via its own `:render-style`.
+
+```clj
+(c/view (c/xy-chart
+         {"Memory usage" {:x (range 0 10 0.5)
+                          :y [0.0 0.5 2.3 4.5 2.7 4.5 6.7 9.0 9.3 9.5
+                              6.7 7.5 8.8 10.3 9.7 11.4 5.6 4.5 5.6 1.2]
+                          :style {:marker-type :none}}
+          "Total memory" {:x (range 10)
+                          :y (repeat 10 12)
+                          :style {:render-style :line
+                                  :marker-type :none
+                                  :line-color :red}}}
+         {:width 640
+          :height 500
+          :title "Memory usage"
+          :render-style :area
+          :x-axis {:title "Time (min)"
+                   :min 0
+                   :max 10}
+          :y-axis {:title "Memory (GB)"
+                   :max 15}
+          :legend {:position :inside-nw}}))
+```
+
+![Example of an Area chart](imgs/memory-area.png)
+
+### Scatter Chart
+
+If you do not want lines between points, you can use the render style
+`:scatter`. This is typical for when you have data points and want to show the
+relation between two variables in those points. Ordering does not matter for
+scatter charts, so the data points can be in arbitrary order:
+
+```clj
+(def april-data
+  [{:temperature 21.76, :income 732.69}
+   {:temperature 23.19, :income 697.69}
+   {:temperature 18.82, :income 571.86}
+   {:temperature 23.03, :income 778.27}
+   {:temperature 27.74, :income 755.72}
+   {:temperature 24.01, :income 838.15}
+   {:temperature 25.21, :income 663.07}
+   {:temperature 15.77, :income 536.15}
+   {:temperature 25.51, :income 937.94}
+   {:temperature 20.84, :income 715.92}
+   {:temperature 13.52, :income 379.37}
+   {:temperature 17.32, :income 482.05}
+   {:temperature 15.31, :income 470.4}
+   {:temperature 26.17, :income 752.04}])
+
+(c/view (c/xy-chart
+         {"Sales" {:x (map :temperature april-data)
+                   :y (map :income april-data)}}
+         {:title "Sales for first half of April"
+          :width 640
+          :height 500
+          :y-axis {:decimal-pattern "$ #,###.##"}
+          :x-axis {:decimal-pattern "##.## °C"}
+          :render-style :scatter}))
+```
+
+![Example of a scatter chart](imgs/scatter-example.png)
+
+You can even use it for silly things like a map for a 2D game! I'm not sure I'd
+recommend this as a rendering engine though.
+
+```clj
+(def monsters
+  [{:x 4 :y 5}
+   {:x 8 :y 0}
+   {:x 1 :y 2}
+   {:x 1 :y 1}
+   {:x 0 :y 1}])
+
+(def treasures
+  [{:x 3 :y 7}
+   {:x 5 :y 1}
+   {:x 4 :y 7}])
+
+(def player {:x 5 :y 5})
+
+(c/spit (c/xy-chart
+         {"Monsters" {:x (map :x monsters)
+                      :y (map :y monsters)
+                      :style {:marker-color :red
+                              :marker-type :diamond}}
+          "Player" {:x [(:x player)]
+                    :y [(:y player)]
+                    :style {:marker-color :green
+                            :marker-type :triangle-up}}
+          "Treasures" {:x (map :x treasures)
+                       :y (map :y treasures)
+                       :style {:marker-color :orange
+                               :marker-type :square}}}
+         {:title "Map"
+          :width 640
+          :height 500
+          :render-style :scatter
+          :axis {:ticks {:visible? false}}}))
+```
+
+![2D map for a game](imgs/scatter-2d-map.png)
