@@ -412,3 +412,7 @@ Note that PDF support seems incredibly slow and might even break on Java 1.6 (I
 managed to get heap dumps when using it). I would recommend to check out the
 performance before using the PDF option in production. The other vector formats
 seems to work fine though.
+
+If you use `view` on a chart, it seems like the chart's dimensions could be
+changed. So if you view it, scale the window a bit, then write it to a file,
+then the size could differ from what you originally intended it to be.
