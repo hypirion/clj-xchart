@@ -120,7 +120,7 @@
   {:inside-n  Styler$LegendPosition/InsideN
    :inside-ne Styler$LegendPosition/InsideNE
    :inside-nw Styler$LegendPosition/InsideNW
-   :inside-se Styler$LegendPosition/InsideSW
+   :inside-se Styler$LegendPosition/InsideSE
    :inside-sw Styler$LegendPosition/InsideSW
    :outside-e Styler$LegendPosition/OutsideE})
 
