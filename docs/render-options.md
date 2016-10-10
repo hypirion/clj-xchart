@@ -391,8 +391,8 @@ like in the example above.
 Now we can finally go over to specific chart examples.
 
 The generic examples above should cover almost everything specific with XY
-charts. There is an additional option, which is `:render-style`, which changes
-how the xy-lines are rendered. The style can be only one of the following ones:
+charts. There is an additional option – `:render-style` – which changes how the
+xy-lines are rendered. The style can be only one of the following ones:
 
 ```clj
 #{:line :area :scatter}
@@ -451,7 +451,7 @@ scatter charts, so the data points can be in arbitrary order:
    {:temperature 20.84, :income 715.92}
    {:temperature 13.52, :income 379.37}
    {:temperature 17.32, :income 482.05}
-   {:temperature 15.31, :income 470.4}
+   {:temperature 15.31, :income 470.40}
    {:temperature 26.17, :income 752.04}])
 
 (c/view (c/xy-chart
@@ -485,7 +485,7 @@ recommend this as a rendering engine though.
 
 (def player {:x 5 :y 5})
 
-(c/spit (c/xy-chart
+(c/view (c/xy-chart
          {"Monsters" {:x (map :x monsters)
                       :y (map :y monsters)
                       :style {:marker-color :red
@@ -506,3 +506,43 @@ recommend this as a rendering engine though.
 ```
 
 ![2D map for a game](imgs/scatter-2d-map.png)
+
+## Category Charts
+
+I tend to group the render style of category charts into two groups:
+"Categorical" and "XY-ish".
+
+There are two categorical render-styles: `:bar` and `:stick`. They put the
+series beside each other for each X axis value. For those, the `:series-order`
+(As described in the [tutorial](tutorial.md)) matter for the visualisation:
+
+```clj
+(defn fruit-chart [style]
+  (c/category-chart
+   {"Bananas" {"Mon" 6, "Tue" 2, "Fri" 3, "Wed" 1, "Thur" 3}
+    "Apples" {"Tue" 3, "Wed" 5, "Fri" 1, "Mon" 1}
+    "Pears" {"Thur" 1, "Mon" 3, "Fri" 4, "Wed" 1}}
+   {:title "Weekly Fruit Sales"
+    :width 640
+    :height 500
+    :render-style style
+    :x-axis {:order ["Mon" "Tue" "Wed" "Thur" "Fri"]}}))
+
+(c/view (fruit-chart :bar) (fruit-chart :stick))
+```
+
+![Categorical category charts](imgs/categorical-category-charts.png)
+
+The "XY-ish" render styles are `:area`, `:line` and `:scatter`. I call them
+"XY-ish" because they feel identical to the xy-chart. There are two notable
+distinctions:
+
+1. With the category chart, you can let the x-axis values be strings
+2. The distance between the x-axis point will be fixed and not depend on the
+   x-axis values themselves
+
+```clj
+(c/view (fruit-chart :area) (fruit-chart :line) (fruit-chart :scatter))
+```
+
+![XY-ish category charts](imgs/xyish-category-charts.png)
