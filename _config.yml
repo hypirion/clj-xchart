@@ -1,0 +1,11 @@
+project:
+  name: clj-xchart
+  years: 2016
+  maintainers: ["Jean Niklas L'orange"]
+  license:
+     name: Eclipse Public License
+     url: https://github.com/hyPiRion/clj-xchart/blob/master/LICENSE
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge

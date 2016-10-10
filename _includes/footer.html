@@ -1,0 +1,5 @@
+<p>Copyright © {{ site.project.years }} 
+{% for maintainer in site.project.maintainers %}{% if forloop.first %}{% elsif forloop.last %} and {% else %}, {% endif %}{{ maintainer }}{% endfor %}</p>
+
+<p>This project is licensed under the <a href="{{ site.project.license.url }}">
+{{ site.project.license.name }}</a>.</p>

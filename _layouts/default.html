@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2288ef">
+  <link href="https://fonts.googleapis.com/css?family=Fjord+One" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+  <link href="{{ site.github.url }}/css/style.css" rel="stylesheet" type="text/css">
+  <link href="{{ site.github.url }}/css/highlight.css" rel="stylesheet" type="text/css">
+  <title>{{ page.title }}</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1 id="logo">{{ site.project.name }}</h1>
+      <ul id="menu">
+        {% for link in site.data.navigation %}
+        <li><a href="{% if link.rel_url %}{{ site.github.url }}{{ link.rel_url }}{% else %}{{ link.url }}{% endif %}">{{ link.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div id="content">
+      {{ content }}
+    </div>
+    <div id="footer">
+      {% include footer.html %}
+    </div>
+  </div>
+</body>
+</html>

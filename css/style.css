@@ -1,0 +1,133 @@
+body {
+    font-family: 'Fjord One', serif;
+    margin: 0 auto;
+    background: #e0eefd;
+}
+
+@media all and (min-width: 900px) {
+    body{
+        font-size: 1.4em;
+    }
+}
+
+@media all and (max-width: 899px) {
+    body{
+        font-size: calc(1em + 0.7vw); /* because we don't have max(.., calc) :( */
+    }
+}
+
+/* Include page border */
+
+@media all and (min-width: 900px) {
+    body {
+        width: 900px;
+    }
+
+    #wrapper {
+        border: 1px gray solid;
+    }
+}
+
+/* So small that page border makes no sense */
+
+@media all and (max-width: 899px) {
+   #wrapper {
+       border-bottom: 1px gray solid;
+   }
+}
+
+#wrapper {
+    background: white;
+    padding: 1px 0;
+}
+
+h1, h2, h3 {font-weight: normal;}
+h1, h2, h3, h4 {text-align: left;}
+
+#content h1, #footer h1, h2, h3 {line-height: 1em;}
+
+#menu li {
+    display: inline;
+    margin: 0.2em;
+}
+
+#menu {
+    padding-left: 0;
+}
+
+#header {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: space-around;
+}
+
+a         {color: #0d5eaf; text-decoration: none;}
+a:visited {color: #073460;} /* Hmm, need to think about this one. */
+a:hover   {color: red;     text-decoration: underline;}
+
+img {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+.inline-img {
+    display: inline;
+}
+
+@media all and (min-width: 711px) {
+    #content, #footer {
+        width: 640px;
+    }
+    pre {
+        border: 1px gray solid;
+        border-radius: 0.5em;
+        padding: 0.5rem 1rem;
+    }
+}
+@media all and (max-width: 710px) {
+    p, pre, h1, h2, h3, h4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    pre {
+        border-bottom: 1px gray solid;
+        border-top: 1px gray solid;
+    }
+}
+
+#footnotes {
+    padding-top: 5em;
+}
+
+#content, #footer {
+    margin: 0 auto;
+    text-align: justify;
+}
+
+#footer {
+    border-top: 1px gray solid;
+    font-size: 0.8em;
+    text-align: center;
+}
+
+pre {
+    background: rgba(0,0,0,.05);
+    white-space: pre-wrap;
+}
+
+/* Apparently not that efficient, but we have no reloads so whatever. */
+:not(pre) > code {
+    background: rgba(0,0,0,.05);
+    border-radius: 0.3em;
+}
+
+code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.8em;
+}
+
+pre code {
+    font-size: 0.7em;
+}

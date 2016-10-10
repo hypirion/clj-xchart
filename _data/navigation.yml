@@ -1,0 +1,8 @@
+- title: Home
+  rel_url: /
+- title: Tutorial
+  rel_url: https://github.com/hyPiRion/clj-xchart/blob/master/docs/tutorial.md
+- title: Examples
+  rel_url: /examples
+- title: Source
+  url: https://github.com/hyPiRion/clj-xchart
