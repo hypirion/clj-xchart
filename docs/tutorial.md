@@ -408,14 +408,20 @@ You can turn this behaviour off if you want to, see
 
 ## Gotchas
 
+### PDF Support
+
 Note that PDF support seems incredibly slow and might even break on Java 1.6 (I
-managed to get heap dumps when using it). I would recommend to check out the
+managed to get segfaults when using it). I would recommend to check out the
 performance before using the PDF option in production. The other vector formats
 seems to work fine though.
+
+### View and Mutable Size
 
 If you use `view` on a chart, it seems like the chart's dimensions could be
 changed. So if you view it, scale the window a bit, then write it to a file,
 then the size could differ from what you originally intended it to be.
+
+### Line Chart and X/Y ordering
 
 Line charts are effetively just a polyline, which means the order of the x and y
 values matters. They are not sorted beforehand, so you can make silly charts
@@ -443,6 +449,37 @@ like this one:
 ![Emacs Learning Curve](imgs/emacs-learning-curve.png)
 
 Sometimes this is desirable, e.g. for making charts using parametric forms. But
-usually this is a recipie for disaster: Just pick an order and deal with it.
+usually this is a recipe for disaster: Just pick an order and deal with it. This
+is not an issue if you use scatter- or bubble charts.
 
-This is not an issue if you use scatter- or bubble charts.
+### Many Datapoints
+
+The more datapoints you have, the more memory XChart will use. You mileage may
+vary, but if the datapoints are roughly evenly spaced, then there's no need to
+have more than 2000 datapoints. If you have more points, you should consider
+grouping them together. Since it's not obvious what one wants (max? min? avg?)
+it's currently left out. This small code snippet may work well for you for now:
+
+```clj
+(defn avg [coll]
+  (double (/ (reduce + coll) (count coll))))
+
+(defn chunkify
+  [coll chunk-size]
+  (map avg (partition-all chunk-size coll)))
+
+(defn shrink-series
+  "Assumes the series is on the form {:x [] :y [], ...} and x values
+  are ordered."
+  [series]
+  (let [goal 2000
+        current (count (:x series))]
+    (if (<= current goal)
+      series
+      (let [chunk-size (int (Math/ceil (/ current goal)))]
+        (-> series
+            (update :x chunkify chunk-size)
+            (update :y chunkify chunk-size))))))
+```
+
+Finalizing this and putting it into the library is on the list of things to do.
