@@ -9,9 +9,9 @@ for plotting data. Here's an example similar to Hans Rosling's
 [famous bubble chart](https://www.youtube.com/watch?v=jbkSRLYSojo), visualised
 with clj-xchart:
 
-![GDP per capita](/imgs/rosling.png)
+![GDP per capita]({{ site.github.url }}/imgs/rosling.png)
 
-For more examples, you can have a look over at the [examples page](/examples).
+For more examples, you can have a look over at the [examples page]({{ site.github.url }}/examples).
 
 clj-xchart supports all of the following chart types:
 

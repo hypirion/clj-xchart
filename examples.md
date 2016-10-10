@@ -40,7 +40,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :theme :matlab}))
 ```
 
-![Running distance](/imgs/running-distance.png)
+![Running distance]({{ site.github.url }}/imgs/running-distance.png)
 
 ---
 
@@ -70,7 +70,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :date-pattern "MMM"}))
 ```
 
-![Wins and losses](/imgs/wins-and-losses.png)
+![Wins and losses]({{ site.github.url }}/imgs/wins-and-losses.png)
 
 
 ## Error Bars
@@ -84,7 +84,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
   {:error-bars-color :match-series}))
 ```
 
-![Error bars example](/imgs/error-bars.png)
+![Error bars example]({{ site.github.url }}/imgs/error-bars.png)
 
 ## Logarithmic Scale
 
@@ -103,7 +103,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :y-axis {:logarithmic? true}}))
 ```
 
-![Exponential growth](/imgs/exponential-growth.png)
+![Exponential growth]({{ site.github.url }}/imgs/exponential-growth.png)
 
 ## Area Charts
 
@@ -130,7 +130,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :legend {:position :inside-nw}}))
 ```
 
-![Memory usage](/imgs/memory-usage.png)
+![Memory usage]({{ site.github.url }}/imgs/memory-usage.png)
 
 ## Scatter Charts
 
@@ -165,7 +165,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
     :render-style :scatter}))
 ```
 
-![Scatter example](/imgs/scatter-example.png)
+![Scatter example]({{ site.github.url }}/imgs/scatter-example.png)
 
 ## Category Charts
 
@@ -180,7 +180,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :x-axis {:order ["Mon" "Tue" "Wed" "Thur" "Fri"]}}))
 ```
 
-![Category chart sample](/imgs/fruit-sales.png)
+![Category chart sample]({{ site.github.url }}/imgs/fruit-sales.png)
 
 ## Stick Charts
 
@@ -205,7 +205,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :x-axis {:label {:rotation 30}}}))
 ```
 
-![Excerpt from the State of Clojure Survey 2015](/imgs/excerpt-clojure-survey-2015.png)
+![Excerpt from the State of Clojure Survey 2015]({{ site.github.url }}/imgs/excerpt-clojure-survey-2015.png)
 
 
 ## Overlapping Category Chart
@@ -234,7 +234,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :x-axis {:decimal-pattern "##.00"}}))
 ```
 
-![Overlapping category cart](/imgs/overlapping-store-sales.png)
+![Overlapping category cart]({{ site.github.url }}/imgs/overlapping-store-sales.png)
 
 
 ## Pie Charts
@@ -246,7 +246,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
                "A mix of both" 2}))
 ```
 
-![Basic pie chart](/imgs/basic-pie-chart.png)
+![Basic pie chart]({{ site.github.url }}/imgs/basic-pie-chart.png)
 
 ---
 
@@ -265,7 +265,7 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :annotation-distance 0.82}))
 ```
 
-![Which ClojureScript optimization settings do you use?](/imgs/cljs-opts.png)
+![Which ClojureScript optimization settings do you use?]({{ site.github.url }}/imgs/cljs-opts.png)
 
 
 ## Misc
@@ -288,4 +288,4 @@ user=> (require '[com.hypirion.clj-xchart :as c])
    :axis {:ticks {:visible? false}}}))
 ```
 
-![Emacs learning curve](/imgs/emacs-learning-curve.png)
+![Emacs learning curve]({{ site.github.url }}/imgs/emacs-learning-curve.png)
