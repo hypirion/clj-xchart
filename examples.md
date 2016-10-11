@@ -187,18 +187,19 @@ user=> (require '[com.hypirion.clj-xchart :as c])
 ```clj
 (c/view
  (c/category-chart
-  {"True" {"Easy to find?" 1329
-           "Active maintainers?" 1049
-           "Accurate + good docs?" 435
-           "Good quality?" 1221}
-   "False" {"Easy to find?" 47
-            "Active maintainers?" 32
-            "Accurate + good docs?" 295
-            "Good quality?" 36}
-   "Mixed bag" {"Easy to find?" 830
-                "Active maintainers?" 1015
-                "Accurate + good docs?" 1463
-                "Good quality?" 910}}
+  (c/transpose-map
+   {"Easy to find?" {"True" 1329,
+                     "False" 47,
+                     "Mixed bag" 830},
+    "Active maintainers?" {"True" 1049,
+                           "False" 32,
+                           "Mixed bag" 1015},
+    "Accurate + good docs?" {"True" 435,
+                             "False" 295,
+                             "Mixed bag" 1463},
+    "Good quality?" {"True" 1221,
+                     "False" 36,
+                     "Mixed bag" 910}})
   {:title "Excerpt from the State of Clojure Survey 2015"
    :render-style :stick
    :y-axis {:ticks-visible? false}
