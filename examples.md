@@ -153,8 +153,10 @@ user=> (require '[com.hypirion.clj-xchart :as c])
 
 (c/view
  (c/xy-chart
-  {"Sales" {:x (map :temperature april-data)
-            :y (map :income april-data)}
+  {"Sales" (c/extract-series
+            {:x :temperature
+             :y :income}
+            april-data)
    "Trend line" {:x [13 28]
                  :y [408 858]
                  :style {:render-style :line
