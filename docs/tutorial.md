@@ -433,6 +433,39 @@ Note that when the size of an entry is very small, its percentage is not shown.
 You can turn this behaviour off if you want to, see
 [render-options](render-options.md).
 
+## Utility Functions
+
+### `transpose-map`
+
+`transpose-map` is a convenient function if you have surveys or other nested
+maps where you want to inverse the y and x-axes. It simply switches the order
+between the outer keys and the inner keys. Here's an example which uses parts of
+the Clojure survey:
+
+```clj
+(c/view
+ (c/category-chart
+  (c/transpose-map
+   {"Easy to find?" {"True" 1329,
+                     "False" 47,
+                     "Mixed bag" 830},
+    "Active maintainers?" {"True" 1049,
+                           "False" 32,
+                           "Mixed bag" 1015},
+    "Accurate + good docs?" {"True" 435,
+                             "False" 295,
+                             "Mixed bag" 1463},
+    "Good quality?" {"True" 1221,
+                     "False" 36,
+                     "Mixed bag" 910}})
+  {:title "Excerpt from the State of Clojure Survey 2015"
+   :render-style :stick
+   :y-axis {:ticks-visible? false}
+   :x-axis {:label {:rotation 30}}}))
+```
+
+![Excerpt from the State of Clojure Survey 2015](imgs/excerpt-clojure-survey-2015.png)
+
 ## Gotchas
 
 ### PDF Support

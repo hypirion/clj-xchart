@@ -633,3 +633,16 @@
   ([chart fname type]
    (with-open [fos (FileOutputStream. fname)]
      (.write fos (to-bytes chart type)))))
+
+(defn- transpose-single
+  [acc k1 v1]
+  (reduce-kv (fn [m k2 v2]
+               (assoc-in m [k2 k1] v2))
+             acc v1))
+
+(defn transpose-map
+  "Transforms a map of maps such that the inner keys and outer keys are flipped.
+  That is, `(get-in m [k1 k2])` = `(get-in (transpose-map m) [k2 k1])`. The
+  inner values remain the same."
+  [series]
+  (reduce-kv transpose-single {} series))
