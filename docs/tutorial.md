@@ -43,13 +43,40 @@ when you're prototyping and need to verify that the chart looks right. Or you
 can use it to compare the styling of two charts to figure out which one looks
 the best.
 
+```clj
+(c/view my-chart)
+
+(c/view my-chart1 my-chart2)
+```
+
 `to-bytes` takes a single chart and a format type, and returns a byte array of
 the output. The format type can be either `:png`, `:gif`, `:bmp`,
 `:jpg`/`:jpeg`, `:pdf`, `:svg` and `:eps`.
 
+```clj
+(c/to-bytes my-chart :png)
+
+;; Example
+
+(import '(java.io ByteArrayInputStream))
+
+(defn svg-stats [request]
+  (let [stat-chart (make-chart (:body request))]
+    {:status-code 200
+     :headers {"Content-Type" "image/svg+xml"}
+     :body (ByteArrayInputStream.
+            (c/to-bytes stat-chart :svg))}))
+```
+
 `spit` is utility function and a chart variant of Clojure's own `spit`. It takes
 a chart, a filename and an optional format type, and writes it to disk. If the
 format type is not specified, then it is guessed by the filename extension.
+
+```clj
+(c/spit my-chart "results.pdf")
+
+(c/spit my-chart "no-suffix" :jpg)
+```
 
 For low-level use, you can use `as-buffered-image` to get a
 `java.awt.image.BufferedImage` from the chart.
