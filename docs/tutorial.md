@@ -435,6 +435,53 @@ You can turn this behaviour off if you want to, see
 
 ## Utility Functions
 
+clj-xchart ships with two small data transformation functions to make it easier
+to create conforming series.
+
+### `extract-series`
+
+A typical issue is how data is grouped. clj-xchart feels usually kind of awkward
+here, because the `:x`, `:y` and `:error-bar`/`:bubble` contents are separated
+from eachother.
+
+I usually tend to keep my data in pairs or maps instead, like
+
+```clj
+(def pairs
+  [[1 1]
+   [2 2]
+   [3 3]])
+
+(def maps
+  [{:cpu-usage 55.0, :time #inst "2016-10-11T22:22:18.771-00:00"}
+   {:cpu-usage 68.0, :time #inst "2016-10-11T22:22:19.753-00:00"}
+   ...])
+```
+
+To get around and get clj-xchart properly working I need to separate these. With
+`extract-series`, this is somewhat more convenient. The first argument is a
+map with extraction functions, and the second is the collection of values:
+
+```
+(c/extract-series
+  {:x first
+   :y second}
+  pairs)
+=> {:x (1 2 3)
+    :y (1 2 3)}
+
+(c/extract-series
+  {:x :cpu-usage
+   :y :time}
+  maps)
+=> {:x (55.0 68.0 ...)
+    :y (#inst "2016-10-11T22:22:18.771-00:00" #inst "2016-10-11T22:22:19.753-00:00" ...)}
+```
+
+You can provide whatever keys you would like to, so if you need to compute
+`:bubble` as well, it's as easy as adding another entry, or if you need to
+compute `:x` through other means, then don't add it to the series.
+
 ### `transpose-map`
 
 `transpose-map` is a convenient function if you have surveys or other nested
@@ -465,6 +512,7 @@ the Clojure survey:
 ```
 
 ![Excerpt from the State of Clojure Survey 2015](imgs/excerpt-clojure-survey-2015.png)
+
 
 ## Gotchas
 

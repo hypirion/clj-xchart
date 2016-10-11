@@ -646,3 +646,14 @@
   inner values remain the same."
   [series]
   (reduce-kv transpose-single {} series))
+
+(defn extract-series
+  "Transforms coll into a series map by using the values in the provided keymap.
+
+  Example: (extract-series {:x f, :y g, :bubble bubble} coll)
+        == {:x (map f coll), :y (map g coll), :bubble (map bubble coll)}"
+  [keymap coll]
+  (into {}
+        (for [[k v] keymap]
+          [k (map v coll)])))
+
