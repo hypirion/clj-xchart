@@ -174,9 +174,11 @@ You can also render category charts with clj-xchart: This is done via
 `category-chart*`. The most famous type of category chart is probably the bar
 chart, but other variants exist. One difference between between XY-charts and
 category charts are their inputs: The X-axis of a category chart can either be
-numbers, dates or strings, whereas the X-axis of an XY-chart can only be
-numbers. Another difference is that the X-axis isn't "sorted", that is, if the
-X-axis is `[100 -20]`, then 100 will be rendered first, then -20.
+numbers, dates or strings, whereas the X-axis of an XY-chart can only be numbers
+or dates. Another difference is that the X-axis isn't "sorted", nor will the
+deltas show up, that is, if the X-axis is `[100 -20]`, then 100 will be rendered
+first, then -20. If the X-axis were `[-20 -21 100]`, then the distance betweeen
+-20 and -21 is as large as the one between -21 to 100.
 
 Let's have a look at one:
 
@@ -462,7 +464,7 @@ To get around and get clj-xchart properly working I need to separate these. With
 `extract-series`, this is somewhat more convenient. The first argument is a
 map with extraction functions, and the second is the collection of values:
 
-```
+```clj
 (c/extract-series
   {:x first
    :y second}
