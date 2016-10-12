@@ -347,7 +347,12 @@
   ([chart s-name x-data y-data error-bars]
    (.addSeries chart s-name x-data y-data error-bars)))
 
-(defn add-series
+(defn add-series!
+  "Adds an XY or category series to an already existing chart. It is preferable
+  to provide all series upfront to avoid mutable operations on a chart.
+
+  For bubble-charts, use `add-bubble-series!`. For pie charts, just use
+  (.addSeries chart name val)."
   [chart s-name data]
   (if (sequential? data)
     (apply add-raw-series chart s-name data)
@@ -370,7 +375,9 @@
 ;; TODO: Add in font as a shortcut to set all fonts not yet set.
 
 (defn xy-chart
-  "Returns an xy-chart"
+  "Returns an xy-chart. See the tutorial for more information about
+  how to create an xy-chart, and see the render-styles documentation
+  for styling options."
   ([series]
    (xy-chart series {}))
   ([series
@@ -381,7 +388,7 @@
    (let [chart (XYChart. width height)]
      (doseq [[s-name data] series]
        (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-series chart s-name data)
+         (doto-cond (add-series! chart s-name data)
           render-style (.setXYSeriesRenderStyle (xy-render-styles render-style)))))
      (doto-cond
       (.getStyler chart)
@@ -397,8 +404,10 @@
       (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
 (defn category-chart*
-  "Returns a raw category chart. Prefer `category-chart` unless you run into
-  performance issues, see the tutorial for more information."
+  "Returns a raw category chart. Prefer `category-chart` unless you
+  run into performance issues. See the tutorial for more information
+  about how to create category charts, and see the render-styles
+  documentation for styling options."
   ([series]
    (category-chart* series {}))
   ([series
@@ -409,7 +418,7 @@
    (let [chart (CategoryChart. width height)]
      (doseq [[s-name data] series]
        (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-series chart s-name data)
+         (doto-cond (add-series! chart s-name data)
           render-style (.setChartCategorySeriesRenderStyle
                         (category-render-styles render-style)))))
      (doto-cond
@@ -486,9 +495,9 @@
             [k (reorder-series v x-order)]))))
 
 (defn category-chart
-  "Returns a category chart. A series content can be on the form
-  {String/Date/Number Number}, and if you desire to style it, you can wrap it in
-  a map `:content`. :x-order and :series-order"
+  "Returns a category chart. See the tutorial for more information
+  about how to create category charts, and see the render-styles
+  documentation for styling options."
   ([series]
    (category-chart series {}))
   ([series {:keys [x-axis series-order] :as styling}]
@@ -500,7 +509,10 @@
                                 extra-categories)]
      (category-chart* normalized-seq styling))))
 
-(defn add-bubble-series
+(defn add-bubble-series!
+  "Adds an additional bubble series to the provided bubble chart. It is
+  preferable to provide all series upfront instead of mutating the underlying
+  chart. For other chart types, see the add-series! function."
   [chart s-name data]
   (if (sequential? data)
     (apply add-raw-series chart s-name data)
@@ -517,7 +529,10 @@
        (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
 
 (defn bubble-chart*
-  "Returns a raw bubble chart"
+  "Returns a raw bubble chart. Bubble charts are hard to make right,
+  so please see the tutorial for more information about how to create
+  one. The render-styles page will give you information about styling
+  options."
   ([series]
    (bubble-chart* series {}))
   ([series
@@ -528,7 +543,7 @@
    (let [chart (BubbleChart. width height)]
      (doseq [[s-name data] series]
        (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-bubble-series chart s-name data)
+         (doto-cond (add-bubble-series! chart s-name data)
           render-style (.setBubbleSeriesRenderStyle (bubble-render-styles render-style)))))
      (doto-cond
       (.getStyler chart)
@@ -544,7 +559,13 @@
       (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
 (defn pie-chart
-  "Returns a pie chart"
+  "Returns a pie chart. The series map is in this case just a mapping
+  from string to number. For styling information, see the
+  render-styles page.
+
+  Example:
+  (c/pie-chart {\"Red\" 54
+                \"Green\" 34})"
   ([series]
    (pie-chart series {}))
   ([series
@@ -574,7 +595,7 @@
       (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
 (defn as-buffered-image
-  "Converts a chart into a java.awt.image.BufferedImage"
+  "Converts a chart into a java.awt.image.BufferedImage."
   [chart]
   (BitmapEncoder/getBufferedImage chart))
 
@@ -627,7 +648,8 @@
 
 (defn spit
   "Spits the chart to the given filename. If no type is provided, the type is
-  guessed by the"
+  guessed by the filename extension. If no extension is found, an error is
+  raised."
   ([chart fname]
    (spit chart fname (guess-extension fname)))
   ([chart fname type]
@@ -649,6 +671,8 @@
 
 (defn extract-series
   "Transforms coll into a series map by using the values in the provided keymap.
+  There's no requirement to provide :x or :y (or any key at all, for that
+  matter), although that's common.
 
   Example: (extract-series {:x f, :y g, :bubble bubble} coll)
         == {:x (map f coll), :y (map g coll), :bubble (map bubble coll)}"
