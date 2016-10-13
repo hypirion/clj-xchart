@@ -570,6 +570,8 @@ of 0.82 seems to be optimal for donut charts:
                       :annotation-distance 0.82}))
 ```
 
+![Donut chart with fixed annotation distance](imgs/annotation-distance.png)
+
 You can also tune the `:donut-thickness` if the rendering style is donut. It has
 to be a number between 0 and 1.0 inclusive: 1.0 turns the donut into a pie
 chart, whereas 0.0 will turn the donut into nothing.
