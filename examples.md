@@ -292,3 +292,16 @@ user=> (require '[com.hypirion.clj-xchart :as c])
 ```
 
 ![Emacs learning curve]({{ site.github.url }}/imgs/emacs-learning-curve.png)
+
+
+```clj
+(c/view
+ (c/pie-chart
+  [["Not Pacman" 1/4]
+   ["Pacman" 3/4]]
+  {:start-angle 225.0
+   :plot {:background-color :black}
+   :series [{:color :black} {:color :yellow}]}))
+```
+
+![Pacman pie chart]({{ site.github.url }}/imgs/pacman.png)
