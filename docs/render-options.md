@@ -546,3 +546,66 @@ distinctions:
 ```
 
 ![XY-ish category charts](imgs/xyish-category-charts.png)
+
+## Pie Charts
+
+Pie charts can either be pie shaped or donut shaped:
+
+```clj
+(c/view (c/pie-chart {"A" 1/3 "B" 2/3})
+        (c/pie-chart {"A" 1/3 "B" 2/3}
+                     {:render-style :donut}))
+```
+
+![Pie and Donut charts](imgs/pie-donut.png)
+
+In my experience, the donut chart labels usually ends up on the border of the
+inner donut edge, which looks bad. You can tune the annotation distance for both
+styles through `:annotation-distance`. I find that an annotation distance
+of 0.82 seems to be optimal for donut charts:
+
+```clj
+(c/view (c/pie-chart {"A" 1/3 "B" 2/3}
+                     {:render-style :donut
+                      :annotation-distance 0.82}))
+```
+
+You can also tune the `:donut-thickness` if the rendering style is donut. It has
+to be a number between 0 and 1.0 inclusive: 1.0 turns the donut into a pie
+chart, whereas 0.0 will turn the donut into nothing.
+
+If you for some reason would like to tune where the first chart element starts,
+you can do so by setting `:start-angle` to a value (in degrees). In that case,
+you should probably force the order of the elements as well to ensure correct
+ordering:
+
+```clj
+(c/view
+ (c/pie-chart [["Not Pacman" 1/4]
+               ["Pacman" 3/4]]
+              {:start-angle 225.0
+               :plot {:background-color :black}
+               :series [{:color :black} {:color :yellow}]}))
+```
+
+![Pacman pie chart](imgs/pacman.png)
+
+You can also specify different annotation types for your pie chart with
+`:annotation-type`. It is by default `:percentage` as we've seen in the previous
+examples, but we can also set it to `:label` or `:label-and-percentage`
+
+```clj
+(c/view (c/pie-chart {"A" 3 "B" 1}
+                     {:annotation-type :label})
+        (c/pie-chart {"A" 3 "B" 1}
+                     {:annotation-type :label-and-percentage}))
+```
+
+![Pie annotation types](imgs/pie-annotation-types.png)
+
+Sometimes, XChart will some labels for you if it finds out that the space for
+the label isn't large enough. Sometimes you disagree with XChart, and when you
+do, you can set the parameter `:draw-all-annotations?` to true.
+
+Finally, if you for some reason doesn't want circular pie or donut charts, you
+can set `:circular?` to `false`.
