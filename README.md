@@ -1,11 +1,12 @@
 # clj-xchart
 
+[`Examples`](https://hypirion.github.io/clj-xchart/examples) | [`API docs`](https://hypirion.github.io/clj-xchart/api/0.2.0/en/)
+
 Clojure wrapper around XChart, a small library for rendering charts/plots.
 
 ![Rosling chart](rosling.png)
 
-This is the latest released version
-([API docs](https://hypirion.github.io/clj-xchart/api/0.2.0/en/)):
+This is the latest released version:
 
 ```clj
 [com.hypirion/clj-xchart "0.2.0"]
