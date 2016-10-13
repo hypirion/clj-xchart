@@ -86,6 +86,22 @@ user=> (require '[com.hypirion.clj-xchart :as c])
 
 ![Error bars example]({{ site.github.url }}/imgs/error-bars.png)
 
+```clj
+(c/view
+ (c/xy-chart
+  {"Error rates" {:x [1 2 3 4 5]
+                  :y [50.0 25.0 16.66 12.5 10.0]
+                  :error-bars [5.0 2.5 1.66 1.25 1.0]
+                  :style {:marker-type :square
+                          :marker-color :red}}}
+  {:title "Error bar example"
+   :render-style :scatter
+   :legend {:position :inside-ne}}))
+```
+
+![Error bars example 2]({{ site.github.url }}/imgs/error-bars-v2.png)
+
+
 ## Logarithmic Scale
 
 ```clj
