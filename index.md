@@ -36,7 +36,6 @@ It also provides the following useful features:
 clj-xchart does **not** provide these features, and most likely never will:
 
 - Interactivity
-- Animation
 
 If you want to provide such graphs to a web page, consider using a
 ClojureScript/JavaScript library instead. There are many good ones out there!
