@@ -359,11 +359,13 @@
     (let [{:keys [x y error-bars style]} data
           {:keys [marker-color marker-type
                   line-color line-style line-width
-                  fill-color show-in-legend?]} style]
+                  fill-color show-in-legend?
+                  ::xy-render-style]} style]
       (doto-cond
        (if error-bars
          (add-raw-series chart s-name x y error-bars)
          (add-raw-series chart s-name x y))
+       xy-render-style (.setXYSeriesRenderStyle xy-render-style)
        marker-color (.setMarkerColor (colors marker-color marker-color))
        marker-type (.setMarker (markers marker-type marker-type))
        line-color (.setLineColor (colors line-color line-color))
@@ -386,14 +388,15 @@
      :as styling}]
    {:pre [series]}
    (let [chart (XYChart. width height)]
-     (doseq [[s-name data] series]
-       (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-series! chart s-name data)
-          render-style (.setXYSeriesRenderStyle (xy-render-styles render-style)))))
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (xy-render-styles render-style)))
+     (doseq [[s-name data] series]
+       (if-let [render-style (-> data :style :render-style)]
+         (add-series! chart s-name (assoc-in data [:style  ::xy-render-style]
+                                             (xy-render-styles render-style)))
+         (add-series! chart s-name data)))
      (doto (.getStyler chart)
        (set-default-style! styling)
        (set-axes-style! styling))
@@ -680,4 +683,3 @@
   (into {}
         (for [[k v] keymap]
           [k (map v coll)])))
-
