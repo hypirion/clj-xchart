@@ -347,6 +347,28 @@
   ([chart s-name x-data y-data error-bars]
    (.addSeries chart s-name x-data y-data error-bars)))
 
+(defn- assoc-in-nonexisting
+  "Like assoc-in, but will only add fields not found. Nil may be found, in which
+  case it is NOT updated."
+  [m ks v]
+  (cond->
+      m
+      (identical? (get-in m ks ::not-found) ::not-found)
+      (assoc-in ks v)))
+
+(defn- attach-default-font
+  "Sets the font type on all the provided "
+  [style-map]
+  (if-let [font (:font style-map)]
+    (-> style-map
+        (dissoc style-map :font)
+        (assoc-in-nonexisting [:axis :ticks :labels :font] font)
+        (assoc-in-nonexisting [:axis :title :font] font)
+        (assoc-in-nonexisting [:legend :font] font)
+        (assoc-in-nonexisting [:annotations-font] font)
+        (assoc-in-nonexisting [:chart :title :font] font))
+    style-map))
+
 (defn add-series!
   "Adds an XY or category series to an already existing chart. It is preferable
   to provide all series upfront to avoid mutable operations on a chart.
@@ -360,12 +382,12 @@
           {:keys [marker-color marker-type
                   line-color line-style line-width
                   fill-color show-in-legend?
-                  ::xy-render-style]} style]
+                  xy-render-style]} style]
       (doto-cond
        (if error-bars
          (add-raw-series chart s-name x y error-bars)
          (add-raw-series chart s-name x y))
-       xy-render-style (.setXYSeriesRenderStyle xy-render-style)
+       xy-render-style (.setXYSeriesRenderStyle (xy-render-styles xy-render-style))
        marker-color (.setMarkerColor (colors marker-color marker-color))
        marker-type (.setMarker (markers marker-type marker-type))
        line-color (.setLineColor (colors line-color line-color))
@@ -373,8 +395,6 @@
        line-width (.setLineWidth (float line-width))
        fill-color (.setFillColor (colors fill-color fill-color))
        (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
-
-;; TODO: Add in font as a shortcut to set all fonts not yet set.
 
 (defn xy-chart
   "Returns an xy-chart. See the tutorial for more information about
@@ -387,15 +407,17 @@
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
-   (let [chart (XYChart. width height)]
+   (let [chart (XYChart. width height)
+         styling (attach-default-font styling)]
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (xy-render-styles render-style)))
      (doseq [[s-name data] series]
        (if-let [render-style (-> data :style :render-style)]
-         (add-series! chart s-name (assoc-in data [:style  ::xy-render-style]
-                                             (xy-render-styles render-style)))
+         (add-series! chart s-name
+                      (assoc-in data [:style :xy-render-style]
+                                render-style))
          (add-series! chart s-name data)))
      (doto (.getStyler chart)
        (set-default-style! styling)
@@ -418,7 +440,8 @@
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
-   (let [chart (CategoryChart. width height)]
+   (let [chart (CategoryChart. width height)
+         styling (attach-default-font styling)]
      (doseq [[s-name data] series]
        (let [render-style (-> data :style :render-style)]
          (doto-cond (add-series! chart s-name data)
@@ -543,7 +566,8 @@
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
-   (let [chart (BubbleChart. width height)]
+   (let [chart (BubbleChart. width height)
+         styling (attach-default-font styling)]
      (doseq [[s-name data] series]
        (let [render-style (-> data :style :render-style)]
          (doto-cond (add-bubble-series! chart s-name data)
@@ -577,7 +601,8 @@
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
-   (let [chart (PieChart. width height)]
+   (let [chart (PieChart. width height)
+         styling (attach-default-font styling)]
      (doseq [[s-name num] series]
        (.addSeries chart s-name num))
      (doto-cond
