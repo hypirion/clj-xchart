@@ -585,6 +585,15 @@
       (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
       (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
+(defn- attach-default-annotation-distance
+  "Attaches a default annotation distance if the donut thickness"
+  [styling]
+  (if-not (and (identical? :donut (:render-style styling))
+               (not (:annotation-distance styling)))
+    styling
+    (assoc styling :annotation-distance
+           (- 1.0 (/ (:donut-thickness styling 0.33) 2)))))
+
 (defn pie-chart
   "Returns a pie chart. The series map is in this case just a mapping
   from string to number. For styling information, see the
@@ -602,7 +611,12 @@
      :as styling}]
    {:pre [series]}
    (let [chart (PieChart. width height)
-         styling (attach-default-font styling)]
+         styling (-> styling
+                     attach-default-font
+                     attach-default-annotation-distance)
+         ;; Need to rebind this one. We could probably omit it from the keys
+         ;; entry at the top, if it's not used for documentation purposes.
+         annotation-distance (:annotation-distance styling)]
      (doseq [[s-name num] series]
        (.addSeries chart s-name num))
      (doto-cond
