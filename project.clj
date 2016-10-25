@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.knowm.xchart/xchart "3.2.0"]]
+                 [org.knowm.xchart/xchart "3.2.1"]]
   :source-paths ["src/clj"]
   :java-source-paths ["src/java"]
   :javac-options ["-Xlint:unchecked"]

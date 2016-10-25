@@ -436,7 +436,8 @@
   ([series]
    (category-chart* series {}))
   ([series
-    {:keys [width height title theme render-style available-space-fill overlap?]
+    {:keys [width height title theme render-style available-space-fill overlap?
+            stacked?]
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
@@ -452,7 +453,8 @@
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (category-render-styles render-style))
       available-space-fill (.setAvailableSpaceFill (double available-space-fill))
-      (not (nil? overlap?))  (.setOverlapped (boolean overlap?)))
+      (not (nil? overlap?)) (.setOverlapped (boolean overlap?))
+      (not (nil? stacked?)) (.setStacked (boolean stacked?)))
      (doto (.getStyler chart)
        (set-default-style! styling)
        (set-axes-style! styling))
