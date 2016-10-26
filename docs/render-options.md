@@ -609,22 +609,21 @@ Pie charts can either be pie shaped or donut shaped:
 
 ![Pie and Donut charts](imgs/pie-donut.png)
 
-In my experience, the donut chart labels usually ends up on the border of the
-inner donut edge, which looks bad. You can tune the annotation distance for both
-styles through `:annotation-distance`. I find that an annotation distance
-of 0.82 seems to be optimal for donut charts:
+The image above is from version 0.2.0, which had a bad default annotation
+distance for donut charts. From 0.3.0 and above, the annotation distance is
+automatically calculated if not set explicitly. The annotation distance is set
+to 1 - `donut-thickness`/2. (By default, `donut-thickness` is equal to 0.33)
 
 ```clj
 (c/view (c/pie-chart {"A" 1/3 "B" 2/3}
-                     {:render-style :donut
-                      :annotation-distance 0.82}))
+                     {:render-style :donut}))
 ```
 
 ![Donut chart with fixed annotation distance](imgs/annotation-distance.png)
 
-You can also tune the `:donut-thickness` if the rendering style is donut. It has
-to be a number between 0 and 1.0 inclusive: 1.0 turns the donut into a pie
-chart, whereas 0.0 will turn the donut into nothing.
+You can tune the `:donut-thickness` if the rendering style is donut. It has to
+be a number between 0 and 1.0 inclusive: 1.0 turns the donut into a pie chart,
+whereas 0.0 will turn the donut into nothing.
 
 If you for some reason would like to tune where the first chart element starts,
 you can do so by setting `:start-angle` to a value (in degrees). In that case,
