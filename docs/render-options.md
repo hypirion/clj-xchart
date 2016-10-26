@@ -547,6 +547,56 @@ distinctions:
 
 ![XY-ish category charts](imgs/xyish-category-charts.png)
 
+### Stacked charts
+
+Stacked makes the "categorical" series stack on top of eachother instead of
+stacking beside eachother:
+
+```clj
+(c/view
+ (c/category-chart
+  {"Bananas" {"Mon" 6, "Tue" 2, "Fri" 3, "Wed" 1, "Thur" 3}
+   "Apples" {"Tue" 3, "Wed" 5, "Fri" 1, "Mon" 1}
+   "Pears" {"Thur" 1, "Mon" 3, "Fri" 4, "Wed" 1}}
+  {:title "Weekly Fruit Sales"
+   :width 640
+   :height 500
+   :stacked? true
+   :x-axis {:order ["Mon" "Tue" "Wed" "Thur" "Fri"]}}))
+```
+
+![Basic stacked category chart](imgs/stacked-category-chart.png)
+
+If we want to compare Apples to Pears on a day-to-day basis instead of absolute
+sales, we can use `normalize-categories`. `normalize-categories` will normalize
+all values for a certain day, such that the total sum for a single day will be
+exactly one.
+
+```clj
+(c/view
+ (c/category-chart
+  (c/normalize-categories
+   {"Bananas" {"Mon" 6, "Tue" 2, "Fri" 3, "Wed" 1, "Thur" 3}
+    "Apples" {"Tue" 3, "Wed" 5, "Fri" 1, "Mon" 1}
+    "Pears" {"Thur" 1, "Mon" 3, "Fri" 4, "Wed" 1}})
+  {:title "Relative Fruit Sales"
+   :width 640
+   :height 500
+   :stacked? true
+   :y-axis {:decimal-pattern "### %"}
+   :x-axis {:order ["Mon" "Tue" "Wed" "Thur" "Fri"]}}))
+```
+
+![Normali<ed stacked category chart](imgs/normalized-stacked-category-chart.png)
+
+This is not necessarily the right way to represent the data though. Another
+option which may be more reasonable to use here is the `:line` render style.
+
+### Overlap
+
+You can use the overlap functionality to put several series on top of eachother
+without changing their height. This is rarely what you'd like to do though, as
+it doesn't handle overlaps in any sensible manner.
 ## Pie Charts
 
 Pie charts can either be pie shaped or donut shaped:
