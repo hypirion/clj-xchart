@@ -128,8 +128,10 @@ user=> (c/view chart error-bars)
 
 ### Verbose
 
-All series values can also be on a "verbose" form. If we go back to the content
-of the error-bars example:
+### Canonical Form
+
+All series values can either be on a shorthand form or a canonical form. If we
+go back to the content of the error-bars example:
 
 ```clj
 {"The Prediction" [[1 2 3] ;; X
@@ -148,8 +150,8 @@ Then the same data can be written like this:
 These two forms are identical, but the latter is more self-describing. Use the
 form which fits with how you extract your data.
 
-One thing you can do with the "verbose" form which you cannot do with the vector
-form is to attach styling:
+One thing you can do with the canonical form which you cannot do with the
+shorthand form is to attach styling:
 
 ```clj
 {"The Prediction" {:x [1 2 3]
@@ -215,7 +217,7 @@ Another issue with the category chart is that we often have mappings on the form
 ```
 
 instead of having a vector of keys and a vector of vals. But this won't work if
-we want to use the "verbose" form.
+we want to use the canonical form.
 
 To keep things easy to use, there is a convenience wrapper named
 `category-chart` (without the `*`). It will detect content on the shape
