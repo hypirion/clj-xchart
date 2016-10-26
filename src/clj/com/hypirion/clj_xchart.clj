@@ -38,6 +38,19 @@
                         JFrame
                         SwingUtilities)))
 
+;; reduce-map + map-vals is taken from the Medley utility library:
+;; https://github.com/weavejester/medley
+;; Medley is under the same license (EPL1.0) as clj-xchart.
+(defn- reduce-map [f coll]
+  (if (instance? clojure.lang.IEditableCollection coll)
+    (persistent! (reduce-kv (f assoc!) (transient (empty coll)) coll))
+    (reduce-kv (f assoc) (empty coll) coll)))
+
+(defn- map-vals
+  "Maps a function over the values of an associative collection."
+  [f coll]
+  (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
+
 (def colors
   "All the default java.awt colors as keywords. You can use this map
   to iterate over the keys, in case you'd like to compare different
@@ -511,16 +524,12 @@
   value 0.0 is inserted. If there are other x values not in x-order, they are
   attached at the end in sorted order."
   [series-map x-order]
-  (let [series-map (into {}
-                         (for [[k v] series-map]
-                           [k (normalize-category-series v)]))
+  (let [series-map (map-vals normalize-category-series series-map)
         x-order (vec x-order)
         extra-xs (sort (set/difference (category-series-xs series-map)
                                        (set x-order)))
         x-order (into x-order extra-xs)]
-    (into {}
-          (for [[k v] series-map]
-            [k (reorder-series v x-order)]))))
+    (map-vals #(reorder-series % x-order) series-map)))
 
 (defn category-chart
   "Returns a category chart. See the tutorial for more information
@@ -721,6 +730,15 @@
   Example: (extract-series {:x f, :y g, :bubble bubble} coll)
         == {:x (map f coll), :y (map g coll), :bubble (map bubble coll)}"
   [keymap coll]
-  (into {}
-        (for [[k v] keymap]
-          [k (map v coll)])))
+  (map-vals #(% coll) keymap))
+
+(defn- normalize-group
+  [m]
+  (let [sum (reduce + (vals m))]
+    (map-vals #(/ % sum) m)))
+
+(defn normalize-categories
+  [m]
+  (->> (transpose-map m)
+       (map-vals normalize-group)
+       transpose-map))
