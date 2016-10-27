@@ -388,6 +388,7 @@
 
   For bubble-charts, use `add-bubble-series!`. For pie charts, just use
   (.addSeries chart name val)."
+  ;; TODO: Make this polymorphic over chart types
   [chart s-name data]
   (if (sequential? data)
     (apply add-raw-series chart s-name data)
@@ -629,7 +630,15 @@
          ;; entry at the top, if it's not used for documentation purposes.
          annotation-distance (:annotation-distance styling)]
      (doseq [[s-name num] series]
-       (.addSeries chart s-name num))
+       (if (number? num)
+         (.addSeries chart s-name num)
+         (let [{:keys [render-style fill-color show-in-legend?]} (:style num)
+               val (:value num)]
+           (doto-cond
+            (.addSeries chart s-name val)
+            render-style (.setChartPieSeriesRenderStyle (pie-render-styles render-style))
+            fill-color (.setFillColor (colors fill-color fill-color))
+            (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
