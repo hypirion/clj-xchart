@@ -51,6 +51,12 @@
   [f coll]
   (reduce-map (fn [xf] (fn [m k v] (xf m k (f v)))) coll))
 
+(defprotocol Chart
+  "Protocol for charts, which extends the XChart charts with
+  additional polymorphic Clojure functions."
+  (add-series! [chart series-name data]
+    "A method to add new series to the provided chart"))
+
 (def colors
   "All the default java.awt colors as keywords. You can use this map
   to iterate over the keys, in case you'd like to compare different
@@ -382,33 +388,27 @@
         (assoc-in-nonexisting [:chart :title :font] font))
     style-map))
 
-(defn add-series!
-  "Adds an XY or category series to an already existing chart. It is preferable
-  to provide all series upfront to avoid mutable operations on a chart.
-
-  For bubble-charts, use `add-bubble-series!`. For pie charts, just use
-  (.addSeries chart name val)."
-  ;; TODO: Make this polymorphic over chart types
-  [chart s-name data]
-  (if (sequential? data)
-    (apply add-raw-series chart s-name data)
-    (let [{:keys [x y error-bars style]} data
-          {:keys [marker-color marker-type
-                  line-color line-style line-width
-                  fill-color show-in-legend?
-                  xy-render-style]} style]
-      (doto-cond
-       (if error-bars
-         (add-raw-series chart s-name x y error-bars)
-         (add-raw-series chart s-name x y))
-       xy-render-style (.setXYSeriesRenderStyle (xy-render-styles xy-render-style))
-       marker-color (.setMarkerColor (colors marker-color marker-color))
-       marker-type (.setMarker (markers marker-type marker-type))
-       line-color (.setLineColor (colors line-color line-color))
-       line-style (.setLineStyle (strokes line-style line-style))
-       line-width (.setLineWidth (float line-width))
-       fill-color (.setFillColor (colors fill-color fill-color))
-       (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
+(extend-type XYChart
+  Chart
+  (add-series! [chart s-name data]
+    (if (sequential? data)
+      (apply add-raw-series chart s-name data)
+      (let [{:keys [x y error-bars style]} data
+            {:keys [marker-color marker-type
+                    line-color line-style line-width
+                    fill-color show-in-legend? render-style]} style]
+        (doto-cond
+         (if error-bars
+           (add-raw-series chart s-name x y error-bars)
+           (add-raw-series chart s-name x y))
+         render-style (.setXYSeriesRenderStyle (xy-render-styles render-style))
+         marker-color (.setMarkerColor (colors marker-color marker-color))
+         marker-type (.setMarker (markers marker-type marker-type))
+         line-color (.setLineColor (colors line-color line-color))
+         line-style (.setLineStyle (strokes line-style line-style))
+         line-width (.setLineWidth (float line-width))
+         fill-color (.setFillColor (colors fill-color fill-color))
+         (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn xy-chart
   "Returns an xy-chart. See the tutorial for more information about
@@ -428,11 +428,7 @@
       theme (.setTheme (themes theme theme))
       render-style (.setDefaultSeriesRenderStyle (xy-render-styles render-style)))
      (doseq [[s-name data] series]
-       (if-let [render-style (-> data :style :render-style)]
-         (add-series! chart s-name
-                      (assoc-in data [:style :xy-render-style]
-                                render-style))
-         (add-series! chart s-name data)))
+       (add-series! chart s-name data))
      (doto (.getStyler chart)
        (set-default-style! styling)
        (set-axes-style! styling))
@@ -441,6 +437,28 @@
       title (.setTitle title)
       (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
       (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
+
+(extend-type CategoryChart
+  Chart
+  (add-series! [chart s-name data]
+    (if (sequential? data)
+      (apply add-raw-series chart s-name data)
+      (let [{:keys [x y error-bars style]} data
+            {:keys [marker-color marker-type
+                    line-color line-style line-width
+                    fill-color show-in-legend? render-style]} style]
+        (doto-cond
+         (if error-bars
+           (add-raw-series chart s-name x y error-bars)
+           (add-raw-series chart s-name x y))
+         render-style (.setChartCategorySeriesRenderStyle (category-render-styles render-style))
+         marker-color (.setMarkerColor (colors marker-color marker-color))
+         marker-type (.setMarker (markers marker-type marker-type))
+         line-color (.setLineColor (colors line-color line-color))
+         line-style (.setLineStyle (strokes line-style line-style))
+         line-width (.setLineWidth (float line-width))
+         fill-color (.setFillColor (colors fill-color fill-color))
+         (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn category-chart*
   "Returns a raw category chart. Prefer `category-chart` unless you
@@ -458,10 +476,7 @@
    (let [chart (CategoryChart. width height)
          styling (attach-default-font styling)]
      (doseq [[s-name data] series]
-       (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-series! chart s-name data)
-          render-style (.setChartCategorySeriesRenderStyle
-                        (category-render-styles render-style)))))
+       (add-series! chart s-name data))
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
@@ -547,24 +562,24 @@
                                 extra-categories)]
      (category-chart* normalized-seq styling))))
 
-(defn add-bubble-series!
-  "Adds an additional bubble series to the provided bubble chart. It is
-  preferable to provide all series upfront instead of mutating the underlying
-  chart. For other chart types, see the add-series! function."
-  [chart s-name data]
-  (if (sequential? data)
-    (apply add-raw-series chart s-name data)
-    (let [{:keys [x y bubble style]} data
-          {:keys [marker-color marker-type
-                  line-color line-style line-width
-                  fill-color show-in-legend?]} style]
-      (doto-cond
-       (add-raw-series chart s-name x y bubble)
-       line-color (.setLineColor (colors line-color line-color))
-       line-style (.setLineStyle (strokes line-style line-style))
-       line-width (.setLineWidth (float line-width))
-       fill-color (.setFillColor (colors fill-color fill-color))
-       (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
+(extend-type BubbleChart
+  Chart
+  (add-series! [chart s-name data]
+    (if (sequential? data)
+      (apply add-raw-series chart s-name data)
+      (let [{:keys [x y bubble style]} data
+            {:keys [marker-color marker-type
+                    line-color line-style line-width
+                    fill-color show-in-legend? render-style]} style]
+        (doto-cond
+         (add-raw-series chart s-name x y bubble)
+         ;; NOTE: Add render style when squares are added to the impl?
+         render-style (.setBubbleSeriesRenderStyle (bubble-render-styles render-style))
+         line-color (.setLineColor (colors line-color line-color))
+         line-style (.setLineStyle (strokes line-style line-style))
+         line-width (.setLineWidth (float line-width))
+         fill-color (.setFillColor (colors fill-color fill-color))
+         (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn bubble-chart*
   "Returns a raw bubble chart. Bubble charts are hard to make right,
@@ -581,9 +596,7 @@
    (let [chart (BubbleChart. width height)
          styling (attach-default-font styling)]
      (doseq [[s-name data] series]
-       (let [render-style (-> data :style :render-style)]
-         (doto-cond (add-bubble-series! chart s-name data)
-          render-style (.setBubbleSeriesRenderStyle (bubble-render-styles render-style)))))
+       (add-series! chart s-name data))
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
@@ -605,6 +618,19 @@
     styling
     (assoc styling :annotation-distance
            (- 1.0 (/ (:donut-thickness styling 0.33) 2)))))
+
+(extend-type PieChart
+  Chart
+  (add-series! [chart s-name data]
+    (if (number? data)
+      (.addSeries chart s-name data)
+      (let [{:keys [render-style fill-color show-in-legend?]} (:style num)
+            val (:value num)]
+        (doto-cond
+         (.addSeries chart s-name val)
+         render-style (.setChartPieSeriesRenderStyle (pie-render-styles render-style))
+         fill-color (.setFillColor (colors fill-color fill-color))
+         (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn pie-chart
   "Returns a pie chart. The series map is in this case just a mapping
@@ -629,16 +655,8 @@
          ;; Need to rebind this one. We could probably omit it from the keys
          ;; entry at the top, if it's not used for documentation purposes.
          annotation-distance (:annotation-distance styling)]
-     (doseq [[s-name num] series]
-       (if (number? num)
-         (.addSeries chart s-name num)
-         (let [{:keys [render-style fill-color show-in-legend?]} (:style num)
-               val (:value num)]
-           (doto-cond
-            (.addSeries chart s-name val)
-            render-style (.setChartPieSeriesRenderStyle (pie-render-styles render-style))
-            fill-color (.setFillColor (colors fill-color fill-color))
-            (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?))))))
+     (doseq [[s-name data] series]
+       (add-series! chart s-name data))
      (doto-cond
       (.getStyler chart)
       theme (.setTheme (themes theme theme))
