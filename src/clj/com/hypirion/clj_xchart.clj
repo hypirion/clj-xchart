@@ -757,7 +757,7 @@
   Example: (extract-series {:x f, :y g, :bubble bubble} coll)
         == {:x (map f coll), :y (map g coll), :bubble (map bubble coll)}"
   [keymap coll]
-  (map-vals #(% coll) keymap))
+  (map-vals #(map % coll) keymap))
 
 (defn- normalize-group
   [m]
