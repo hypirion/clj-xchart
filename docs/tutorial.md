@@ -582,6 +582,38 @@ is not an issue if you use scatter- or bubble charts.
 
 ### Many Datapoints
 
+#### The Opt Namespace
+
+If you have a lot of datapoints and don't want to duplicate data, then you can
+use the `com.hypirion.clj-xchart.opt` namespace to create unmodifiable views
+over lists and vectors. They do not duplicate any data, in stark contrast to
+`map` and `mapv`.
+
+Typically you would just use `extract-series` from that particular namespace
+like so:
+
+```clj
+(ns ...
+  (:require [com.hypirion.clj-xchart :as c]
+            [com.hypirion.clj-xchart.opt :as c-opt]))
+
+(c/spit
+  (c/xy-chart {"foo" (c-opt/extract-series
+                       {:x :foo :y :bar}
+                       my-data)})
+  my-filename)
+```
+
+You can also use `extract-field`, which works like `map` but is as mentioned
+
+As they do not duplicate data, they also redo any computation if any user wants
+to lookup a value once more. This is typically not a problem, as one tends to
+just map over fields in a structure. But if you do some computation on top of
+the values, then be aware of this. If it's not efficient enough you may have to
+do some other tricks.
+
+#### Shrinking the Dataset
+
 The more datapoints you have, the more memory XChart will use. You mileage may
 vary, but if the datapoints are roughly evenly spaced, then there's no need to
 have more than 2000 datapoints. If you have more points, you should consider
