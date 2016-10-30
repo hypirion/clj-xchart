@@ -308,8 +308,24 @@ correctly.
 
 ### Stacked category charts
 
-Work on implementing a `:stacked?` option is future work and currently not
-supported.
+Stacked makes the "categorical" series stack on top of eachother instead of
+stacking beside eachother:
+
+```clj
+(c/view
+ (c/category-chart
+  {"Bananas" {"Mon" 6, "Tue" 2, "Fri" 3, "Wed" 1, "Thur" 3}
+   "Apples" {"Tue" 3, "Wed" 5, "Fri" 1, "Mon" 1}
+   "Pears" {"Thur" 1, "Mon" 3, "Fri" 4, "Wed" 1}}
+  {:title "Weekly Fruit Sales"
+   :width 640
+   :height 500
+   :stacked? true
+   :x-axis {:order ["Mon" "Tue" "Wed" "Thur" "Fri"]}}))
+```
+
+![Basic stacked category chart](imgs/stacked-category-chart.png)
+
 
 ## Bubble Chart
 
