@@ -610,6 +610,45 @@
       (-> styling :x-axis :title) (.setXAxisTitle (-> styling :x-axis :title))
       (-> styling :y-axis :title) (.setYAxisTitle (-> styling :y-axis :title))))))
 
+(defn- max-bubble-value [series]
+  (reduce max
+          (mapcat :bubble (vals series))))
+
+(defn- scale-bubbles
+  "Scales the bubbles such that a bubble with size `in-val` has `out-val`
+  diameter in pixels."
+  [series in-val out-val]
+  (let [bubble-fn #(* out-val (Math/sqrt (/ % in-val)))]
+    (map-vals
+     (fn [data]
+       (update data :bubble #(map bubble-fn %)))
+     series)))
+
+(defn bubble-chart
+  ([series size]
+   (bubble-chart series size {}))
+  ([series {in :in [out-val out-type] :out :as bubble-size}
+    {:keys [width height]
+     :or {width 640 height 500}
+     :as styling}]
+   (let [ot ({:% :percent
+              :percent :percent
+              :px :pixels
+              :pixels :pixels} out-type)
+         out-size (if (identical? :percent ot)
+                    (/ (* out-val (max width height))
+                       100.0)
+                    out-val)
+         in (if (identical? in :max)
+              (max-bubble-value series)
+              in)]
+     (when-not (and (number? in) (number? out-val) ot)
+       (throw (ex-info "bubble-size is not on the correct format"
+                       {:input bubble-size
+                        :expected-example {:in 100 ;; or :max
+                                           :out [100 :px]}})))
+     (bubble-chart* (scale-bubbles series in out-size) styling))))
+
 (defn- attach-default-annotation-distance
   "Attaches a default annotation distance if the donut thickness"
   [styling]
