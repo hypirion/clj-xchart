@@ -684,7 +684,8 @@
    (pie-chart series {}))
   ([series
     {:keys [width height title circular? theme render-style annotation-distance
-            start-angle draw-all-annotations? donut-thickness annotation-type]
+            start-angle draw-all-annotations? donut-thickness annotation-type
+            sum-visible?]
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
@@ -703,6 +704,7 @@
       render-style (.setDefaultSeriesRenderStyle (pie-render-styles render-style))
       (not (nil? circular?)) (.setCircular (boolean circular?))
       (not (nil? draw-all-annotations?)) (.setDrawAllAnnotations (boolean draw-all-annotations?))
+      (not (nil? sum-visible?)) (.setSumVisible (boolean sum-visible?))
       annotation-distance (.setAnnotationDistance (double annotation-distance))
       donut-thickness (.setDonutThickness (double donut-thickness))
       start-angle (.setStartAngleInDegrees (double start-angle))
