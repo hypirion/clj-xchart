@@ -685,7 +685,7 @@
   ([series
     {:keys [width height title circular? theme render-style annotation-distance
             start-angle draw-all-annotations? donut-thickness annotation-type
-            sum-visible?]
+            sum-visible? sum-font]
      :or {width 640 height 500}
      :as styling}]
    {:pre [series]}
@@ -705,6 +705,7 @@
       (not (nil? circular?)) (.setCircular (boolean circular?))
       (not (nil? draw-all-annotations?)) (.setDrawAllAnnotations (boolean draw-all-annotations?))
       (not (nil? sum-visible?)) (.setSumVisible (boolean sum-visible?))
+      sum-font (.setSumFont sum-font)
       annotation-distance (.setAnnotationDistance (double annotation-distance))
       donut-thickness (.setDonutThickness (double donut-thickness))
       start-angle (.setStartAngleInDegrees (double start-angle))
