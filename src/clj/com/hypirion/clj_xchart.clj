@@ -118,6 +118,7 @@
   "The different styles you can use for category series."
   {:area CategorySeries$CategorySeriesRenderStyle/Area
    :bar CategorySeries$CategorySeriesRenderStyle/Bar
+   :stepped-bar CategorySeries$CategorySeriesRenderStyle/SteppedBar
    :line CategorySeries$CategorySeriesRenderStyle/Line
    :scatter CategorySeries$CategorySeriesRenderStyle/Scatter
    :stick CategorySeries$CategorySeriesRenderStyle/Stick})
