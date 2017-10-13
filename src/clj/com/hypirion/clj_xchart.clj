@@ -321,10 +321,12 @@
   [^AxesChartStyler styler
    {:keys [label logarithmic? max min decimal-pattern
            tick-mark-spacing-hint ticks-visible? title-visible?]}]
-  (let [{:keys [alignment rotation]} label]
+  (let [{:keys [alignment rotation alignment-vertical]} label]
     (doto-cond
      styler
      alignment (.setXAxisLabelAlignment (text-alignments alignment alignment))
+     alignment-vertical (.setXAxisLabelAlignmentVertical
+                          (text-alignments alignment-vertical alignment-vertical))
      rotation (.setXAxisLabelRotation (int rotation))))
   (doto-cond
    styler
