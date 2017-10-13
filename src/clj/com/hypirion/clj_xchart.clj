@@ -20,6 +20,7 @@
                                    AxesChartStyler
                                    Styler$LegendPosition
                                    Styler$TextAlignment
+                                   Styler$ToolTipType
                                    PieStyler$AnnotationType
                                    GGPlot2Theme
                                    MatlabTheme
@@ -134,6 +135,11 @@
    :left Styler$TextAlignment/Left
    :right Styler$TextAlignment/Right})
 
+(def tool-tip-type
+  {:x-labels Styler$ToolTipType/xLabels
+   :y-labels Styler$ToolTipType/yLabels
+   :x-and-y-labels Styler$ToolTipType/xAndYLabels})
+
 (def legend-positions
   "The different legend positions. Note that xchart implements only a
   subset of inside/outside for the different positions."
@@ -168,6 +174,18 @@
                    (~(first clause) ~expr-sym ~@(rest clause))))
               pairs)
        ~expr-sym)))
+
+(defn- set-tool-tip-style!
+  [^Styler styler
+   {:keys [background-color border-color highlight-color font type enabled?]}]
+  (doto-cond
+   styler
+   background-color (.setToolTipBackgroundColor (colors background-color background-color))
+   border-color (.setToolTipBorderColor (colors border-color border-color))
+   highlight-color (.setToolTipHighlightColor (colors highlight-color highlight-color))
+   font (.setToolTipFont font)
+   type (.setToolTipType (tool-tip-type type type))
+   (not (nil? enabled?)) (.setToolTipsEnabled (boolean enabled?))))
 
 (defn- set-legend!
   [^Styler styler
@@ -242,7 +260,7 @@
 
 (defn- set-default-style!
   [^Styler styler
-   {:keys [annotations-font annotations? chart plot legend series]}]
+   {:keys [annotations-font annotations? chart plot legend series tool-tip]}]
   (doto-cond
    styler
    annotations-font (.setAnnotationsFont annotations-font)
@@ -250,7 +268,8 @@
    chart (set-chart-style! chart)
    legend (set-legend! legend)
    plot (set-plot-style! plot)
-   series (set-series-style! series)))
+   series (set-series-style! series)
+   tool-tip (set-tool-tip-style! tool-tip)))
 
 (defn- set-axis-ticks!
   [^AxesChartStyler styler
