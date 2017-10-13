@@ -21,6 +21,7 @@
                                    Styler$LegendPosition
                                    Styler$TextAlignment
                                    Styler$ToolTipType
+                                   Styler$YAxisPosition
                                    PieStyler$AnnotationType
                                    GGPlot2Theme
                                    MatlabTheme
@@ -139,6 +140,10 @@
   {:x-labels Styler$ToolTipType/xLabels
    :y-labels Styler$ToolTipType/yLabels
    :x-and-y-labels Styler$ToolTipType/xAndYLabels})
+
+(def y-axis-position
+  {:left Styler$YAxisPosition/Left
+   :right Styler$YAxisPosition/Right})
 
 (def legend-positions
   "The different legend positions. Note that xchart implements only a
@@ -358,8 +363,10 @@
 
 (defn- set-axes-style!
   [^AxesChartStyler styler
-   {:keys [axis error-bars-color plot x-axis y-axis
-           date-pattern decimal-pattern locale marker timezone]}]
+   {:keys [axis error-bars-color plot x-axis y-axis y-axis-group-positions
+           date-pattern decimal-pattern locale marker timezone] :as x}]
+  (doseq [[group-idx pos] (seq y-axis-group-positions)]
+    (.setYAxisGroupPosition styler (int group-idx) (y-axis-position pos pos)))
   (let [ebc error-bars-color ;; error-bars-color is too long to be readable in these expressions
         {axis-ticks :ticks axis-title :title} axis
         {marker-size :size} marker]
@@ -416,7 +423,7 @@
     (if (sequential? data)
       (apply add-raw-series chart s-name data)
       (let [{:keys [x y error-bars style]} data
-            {:keys [marker-color marker-type
+            {:keys [marker-color marker-type y-axis-group
                     line-color line-style line-width
                     fill-color show-in-legend? render-style]} style]
         (doto-cond
@@ -430,6 +437,7 @@
          line-style (.setLineStyle (strokes line-style line-style))
          line-width (.setLineWidth (float line-width))
          fill-color (.setFillColor (colors fill-color fill-color))
+         y-axis-group (.setYAxisGroup (int y-axis-group))
          (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn xy-chart
@@ -466,7 +474,7 @@
     (if (sequential? data)
       (apply add-raw-series chart s-name data)
       (let [{:keys [x y error-bars style]} data
-            {:keys [marker-color marker-type
+            {:keys [marker-color marker-type y-axis-group
                     line-color line-style line-width
                     fill-color show-in-legend? render-style]} style]
         (doto-cond
@@ -480,6 +488,7 @@
          line-style (.setLineStyle (strokes line-style line-style))
          line-width (.setLineWidth (float line-width))
          fill-color (.setFillColor (colors fill-color fill-color))
+         y-axis-group (.setYAxisGroup (int y-axis-group))
          (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn category-chart*
@@ -584,23 +593,43 @@
                                 extra-categories)]
      (category-chart* normalized-seq styling))))
 
+(def ^:private double-array-type
+  (type (double-array 0)))
+
+(defmacro ^:private ->double-array [x]
+  `(if (or (not ~x) (instance? double-array-type ~x))
+     ~x
+     (org.knowm.xchart.internal.Utils/getDoubleArrayFromNumberList ~x)))
+
+;; See https://github.com/timmolter/XChart/issues/225
+(defn- fix-bubble-chart-data [[x1 :as x] y bubble]
+  [(if (instance? java.util.Date x1)
+     (org.knowm.xchart.internal.Utils/getDoubleArrayFromDateList x)
+     (->double-array x))
+   (->double-array y)
+   (->double-array bubble)])
+
 (extend-type BubbleChart
   Chart
   (add-series! [chart s-name data]
     (if (sequential? data)
-      (apply add-raw-series chart s-name data)
+      (let [[x y bubble] data]
+        (apply add-raw-series chart s-name
+          (fix-bubble-chart-data x y bubble)))
       (let [{:keys [x y bubble style]} data
-            {:keys [marker-color marker-type
+            {:keys [marker-color marker-type y-axis-group
                     line-color line-style line-width
                     fill-color show-in-legend? render-style]} style]
         (doto-cond
-         (add-raw-series chart s-name x y bubble)
+         (apply add-raw-series chart s-name
+           (fix-bubble-chart-data x y bubble))
          ;; NOTE: Add render style when squares are added to the impl?
          render-style (.setBubbleSeriesRenderStyle (bubble-render-styles render-style))
          line-color (.setLineColor (colors line-color line-color))
          line-style (.setLineStyle (strokes line-style line-style))
          line-width (.setLineWidth (float line-width))
          fill-color (.setFillColor (colors fill-color fill-color))
+         y-axis-group (.setYAxisGroup (int y-axis-group))
          (not (nil? show-in-legend?)) (.setShowInLegend (boolean show-in-legend?)))))))
 
 (defn bubble-chart*
